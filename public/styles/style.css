@@ -79,3 +79,52 @@ body {
   background-color: #a287e7;
   color: #101d39;
 }
+
+/* --- Button Container --- */
+.hero-buttons {
+  margin-top: 35px;
+  display: flex;
+  justify-content: center; /* Centers buttons if parent is flex/block */
+  gap: 15px; /* Space between buttons */
+}
+
+/* --- Base Button Styles --- */
+.btn {
+  display: inline-block;
+  padding: 12px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 8px; /* Softer corners */
+  transition: all 0.3s ease; /* THE FIX: Makes changes smooth, not choppy */
+  border: 2px solid transparent;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+}
+
+/* --- Primary Button (Teal) --- */
+.btn-primary {
+  background-color: #35aa8f;
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(53, 170, 143, 0.3); /* Glow effect */
+}
+
+.btn-primary:hover {
+  background-color: #2d917a; /* Slightly darker on hover */
+  transform: translateY(-3px); /* Moves button up slightly */
+  box-shadow: 0 6px 20px rgba(53, 170, 143, 0.5); /* Stronger glow */
+}
+
+/* --- Secondary Button (Outline/Purple) --- */
+.btn-secondary {
+  background-color: transparent;
+  color: #a287e7;
+  border-color: #a287e7;
+}
+
+.btn-secondary:hover {
+  background-color: #a287e7;
+  color: #101d39;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(162, 135, 231, 0.3);
+}
