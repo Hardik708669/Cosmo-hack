@@ -1,0 +1,81 @@
+/* Global Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  /* Your requested Background Color */
+  background-color: #101d39;
+  color: #fff;
+}
+
+/* Navbar Styling */
+.navbar {
+  background-color: #0d1830; /* Slightly darker shade for the nav bar depth */
+  padding: 1rem 2rem;
+  border-bottom: 2px solid #35aa8f; /* Teal accent border */
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Logo Styling */
+.logo {
+  font-size: 1.8rem;
+  font-weight: bold;
+  text-decoration: none;
+  /* Your requested Teal Color */
+  color: #35aa8f;
+}
+
+.logo i {
+  margin-right: 8px;
+}
+
+/* Nav Links */
+.nav-links {
+  display: flex;
+  list-style: none;
+  gap: 25px;
+}
+
+.nav-links li a {
+  text-decoration: none;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+/* Hover Effect using your requested Purple Color */
+.nav-links li a:hover {
+  color: #a287e7;
+}
+
+/* Button Styling */
+.btn-login {
+  padding: 8px 20px;
+  border: 2px solid #a287e7;
+  background-color: transparent;
+  color: #a287e7;
+  text-decoration: none;
+  border-radius: 5px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.btn-login:hover {
+  background-color: #a287e7;
+  color: #101d39;
+}
