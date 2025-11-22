@@ -1,0 +1,55 @@
+<%- include('partials/header', { title: (user ? 'Edit' : 'Add') + ' User - PhishGuard' }) %>
+<%- include('partials/sidebar', { page: 'users' }) %>
+
+<div class="main-content">
+    <div class="container">
+        <h1><%= user ? 'Edit' : 'Add New' %> User</h1>
+        
+        <div class="glass-card">
+            <form action="<%= user ? `/users/${user.id}` : '/users' %>" method="POST">
+                <% if (user) { %>
+                    <input type="hidden" name="_method" value="PUT">
+                <% } %>
+                
+                <div class="form-group">
+                    <label class="form-label" for="firstName">First Name</label>
+                    <input type="text" id="firstName" name="firstName" class="form-input" 
+                           value="<%= user ? user.firstName : '' %>" placeholder="Enter first name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="lastName">Last Name</label>
+                    <input type="text" id="lastName" name="lastName" class="form-input" 
+                           value="<%= user ? user.lastName : '' %>" placeholder="Enter last name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="email">Email</label>
+                    <input type="email" id="email" name="email" class="form-input" 
+                           value="<%= user ? user.email : '' %>" placeholder="Enter email address" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="group">Group</label>
+                    <select id="group" name="group" class="form-input">
+                        <option value="">Select a group</option>
+                        <option value="Sales" <%= user && user.group === 'Sales' ? 'selected' : '' %>>Sales</option>
+                        <option value="Engineering" <%= user && user.group === 'Engineering' ? 'selected' : '' %>>Engineering</option>
+                        <option value="Marketing" <%= user && user.group === 'Marketing' ? 'selected' : '' %>>Marketing</option>
+                        <option value="HR" <%= user && user.group === 'HR' ? 'selected' : '' %>>HR</option>
+                        <option value="Finance" <%= user && user.group === 'Finance' ? 'selected' : '' %>>Finance</option>
+                    </select>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                    <button type="submit" class="btn btn-primary">
+                        <%= user ? 'Update' : 'Create' %> User
+                    </button>
+                    <a href="/users" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer') %>
