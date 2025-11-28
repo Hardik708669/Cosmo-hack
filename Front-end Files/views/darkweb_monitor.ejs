@@ -1,128 +1,302 @@
-<%- include('partials/header', { title: 'Dark Web Monitoring - SecureGuard' }) %>
+<%- include('partials/header', { title: 'Dark Web Monitor - SecureGuard' }) %>
 <%- include('partials/sidebar', { page: 'darkweb-monitor' }) %>
 
 <div class="main-content">
-    <div class="container">
-        <div class="fade-in-left">
-            <h1 class="text-gradient-emerald">🕵️ Dark Web Monitoring</h1>
-            <p style="color: #64748B; margin-top: 0.5rem;">Monitor dark web for leaked credentials and sensitive data</p>
-        </div>
-
-        <div class="glass-card card-emerald fade-in-up" style="margin-top: 2rem;">
-            <form id="darkwebForm">
-                <div class="form-group">
-                    <label class="form-label" for="domain">Domain or Email to Monitor</label>
-                    <input type="text" id="domain" name="domain" class="form-input" placeholder="example.com or email@domain.com" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Start Monitoring</button>
-            </form>
-        </div>
-
-        <div id="monitorResults" style="display: none;" class="glass-card fade-in-up" style="margin-top: 2rem;">
-            <h3 style="color: var(--light-emerald); margin-bottom: 1.5rem;">Monitoring Results</h3>
-            <div id="resultsContent"></div>
-        </div>
-
-        <div class="glass-card fade-in-up" style="margin-top: 2rem;">
-            <h3 style="color: var(--light-gold); margin-bottom: 1.5rem;">🔔 Active Monitors</h3>
-            <div class="table-container">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Target</th>
-                            <th>Status</th>
-                            <th>Alerts</th>
-                            <th>Last Scan</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="monitorsTable">
-                        <tr>
-                            <td colspan="5" style="text-align: center; color: #64748B;">No active monitors. Add one above.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+  <div class="container">
+    <div class="fade-in-left">
+      <h1 class="text-gradient-purple">🕵️‍♂️ Dark Web & Leak Monitor</h1>
+      <p style="color: #64748b; margin-top: 0.5rem">
+        Search the deep web for compromised credentials, emails, and phone
+        numbers.
+      </p>
     </div>
+
+    <!-- 1. SEARCH CARD -->
+    <div class="glass-card card-purple fade-in-up" style="margin-top: 2rem">
+      <div id="searchContainer">
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap">
+          <!-- Type Selector -->
+          <div class="form-group" style="flex: 1; min-width: 150px">
+            <label class="form-label">Search Type</label>
+            <select
+              id="searchType"
+              class="form-input"
+              onchange="updatePlaceholder()"
+            >
+              <option value="email">Email Address</option>
+              <option value="username">Username</option>
+              <option value="phone">Phone Number</option>
+            </select>
+          </div>
+
+          <!-- Input Field -->
+          <div class="form-group" style="flex: 3; min-width: 250px">
+            <label class="form-label" for="searchInput">Search Data</label>
+            <input
+              type="text"
+              id="searchInput"
+              class="form-input"
+              placeholder="user@example.com"
+              value="test@example.com"
+            />
+          </div>
+        </div>
+
+        <button
+          id="scanBtn"
+          class="btn btn-primary"
+          style="background: #8b5cf6; border-color: #7c3aed"
+          onclick="initiateDarkWebScan()"
+        >
+          Start Dark Web Scan
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. ERROR BOX -->
+    <div
+      id="errorBox"
+      style="
+        display: none;
+        margin-top: 1rem;
+        padding: 1rem;
+        border-radius: 8px;
+        background: rgba(239, 68, 68, 0.2);
+        border: 1px solid #ef4444;
+        color: #fca5a5;
+        text-align: center;
+      "
+    ></div>
+
+    <!-- 3. RESULTS AREA -->
+    <div id="visualResults" style="display: none; margin-top: 2rem">
+      <!-- A. STATUS HEADER -->
+      <div
+        class="glass-card"
+        id="statusCard"
+        style="
+          text-align: center;
+          padding: 2rem;
+          margin-bottom: 2rem;
+          border-left: 6px solid #10b981;
+        "
+      >
+        <div id="statusIcon" style="font-size: 4rem; margin-bottom: 1rem">
+          ✅
+        </div>
+        <h2
+          id="statusTitle"
+          style="
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: #10b981;
+          "
+        >
+          NO LEAKS FOUND
+        </h2>
+        <p id="statusDesc" style="color: #94a3b8; font-size: 1.1rem">
+          Your data does not appear in our monitored dark web databases.
+        </p>
+
+        <div
+          style="
+            margin-top: 1.5rem;
+            display: inline-block;
+            padding: 5px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            color: #cbd5e1;
+          "
+        >
+          Databases Scanned: <strong>250+</strong>
+        </div>
+      </div>
+
+      <!-- B. BREACH LIST (Hidden if safe) -->
+      <div id="breachContainer" style="display: none">
+        <h3
+          style="
+            color: #fca5a5;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          "
+        >
+          <span
+            style="
+              background: #7f1d1d;
+              width: 30px;
+              height: 30px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border-radius: 50%;
+              font-size: 1.2rem;
+            "
+            >!</span
+          >
+          Exposed Records Found
+        </h3>
+
+        <div id="breachGrid" style="display: grid; gap: 1.5rem">
+          <!-- Breach Cards Injected Here -->
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-document.getElementById('darkwebForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const domain = document.getElementById('domain').value;
-    const resultsDiv = document.getElementById('monitorResults');
-    const resultsContent = document.getElementById('resultsContent');
-    
-    resultsContent.innerHTML = '<div class="loading">Scanning dark web sources...</div>';
-    resultsDiv.style.display = 'block';
-    
-    try {
-        const response = await fetch('/api/darkweb-monitor', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ domain })
-        });
-        
-        const data = await response.json();
-        
-        resultsContent.innerHTML = `
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
-                <div class="stat-card">
-                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">${data.found ? '🚨' : '✅'}</div>
-                    <div class="stat-label">Status</div>
-                    <div style="color: ${data.found ? '#FCA5A5' : 'var(--light-emerald)'}; font-weight: 600; margin-top: 0.5rem;">
-                        ${data.found ? 'Data Found' : 'Clean'}
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🌐</div>
-                    <div class="stat-label">Sources Scanned</div>
-                    <div style="color: #94A3B8; font-weight: 600; margin-top: 0.5rem;">${data.sourcesScanned}</div>
-                </div>
-                <div class="stat-card">
-                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">⚠️</div>
-                    <div class="stat-label">Alerts</div>
-                    <div style="color: var(--light-gold); font-weight: 600; margin-top: 0.5rem;">${data.alertCount}</div>
-                </div>
-            </div>
-            ${data.found ? `
-                <div style="background: rgba(239, 68, 68, 0.1); padding: 1.5rem; border-radius: 12px; border-left: 4px solid #EF4444; margin-bottom: 1.5rem;">
-                    <h4 style="color: #FCA5A5; margin-bottom: 1rem;">🚨 Dark Web Findings</h4>
-                    <ul style="color: #CBD5E1; line-height: 1.8;">
-                        ${data.findings.map(f => `<li><strong>${f.type}</strong>: ${f.description} (Found: ${f.date})</li>`).join('')}
-                    </ul>
-                </div>
-                <div class="alert alert-error">
-                    <strong>Action Required:</strong> Your data has been found on dark web sources. Change passwords immediately and enable 2FA.
-                </div>
-            ` : `
-                <div class="alert alert-success">
-                    No data found on dark web sources. Monitoring will continue automatically.
-                </div>
-            `}
-        `;
-        
-        // Update monitors table
-        updateMonitorsTable();
-    } catch (error) {
-        resultsContent.innerHTML = '<div class="alert alert-error">Error monitoring dark web. Please try again.</div>';
-    }
-});
+  // Helper to update placeholder based on selection
+  function updatePlaceholder() {
+    const type = document.getElementById("searchType").value;
+    const input = document.getElementById("searchInput");
+    if (type === "email") input.placeholder = "user@example.com";
+    if (type === "username") input.placeholder = "CoolUser123";
+    if (type === "phone") input.placeholder = "15551234567";
+  }
 
-function updateMonitorsTable() {
-    // Simulated active monitors
-    const monitorsTable = document.getElementById('monitorsTable');
-    monitorsTable.innerHTML = `
-        <tr>
-            <td>${document.getElementById('domain').value}</td>
-            <td><span class="badge badge-active">Active</span></td>
-            <td>0</td>
-            <td>Just now</td>
-            <td><button class="btn btn-secondary" style="padding: 0.5rem;">Stop</button></td>
-        </tr>
-    `;
-}
+  // Helper to format dates
+  const formatDate = (str) => {
+    if (!str) return "Unknown Date";
+    return new Date(str).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  async function initiateDarkWebScan() {
+    console.log("👉 Dark Web Scan Initiated...");
+
+    // 1. Get Elements
+    const searchInput = document.getElementById("searchInput").value;
+    const searchType = document.getElementById("searchType").value;
+    const scanBtn = document.getElementById("scanBtn");
+    const resultsDiv = document.getElementById("visualResults");
+    const errorBox = document.getElementById("errorBox");
+    const breachContainer = document.getElementById("breachContainer");
+    const breachGrid = document.getElementById("breachGrid");
+
+    // 2. Reset UI
+    resultsDiv.style.display = "none";
+    errorBox.style.display = "none";
+    breachContainer.style.display = "none";
+    breachGrid.innerHTML = "";
+
+    scanBtn.innerText = "Searching Underground Markets...";
+    scanBtn.disabled = true;
+
+    try {
+      console.log(`👉 Requesting: ${searchType} -> ${searchInput}`);
+
+      const response = await fetch("/api/darkweb-monitor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: searchInput, type: searchType }),
+      });
+
+      // Session Check
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("text/html")) {
+        throw new Error("Session Expired. Please refresh.");
+      }
+
+      const data = await response.json();
+      console.log("👉 API Data:", data);
+
+      if (data.success === false) {
+        throw new Error(data.error || "Search failed");
+      }
+
+      // --- RENDER LOGIC ---
+      resultsDiv.style.display = "block";
+      const statusCard = document.getElementById("statusCard");
+      const statusTitle = document.getElementById("statusTitle");
+      const statusDesc = document.getElementById("statusDesc");
+      const statusIcon = document.getElementById("statusIcon");
+
+      if (data.leaked) {
+        // LEAK DETECTED
+        statusIcon.innerText = "⚠️";
+        statusTitle.innerText = `DATA COMPROMISED (${data.records_count})`;
+        statusDesc.innerText =
+          "This data was found in public or private data breaches.";
+
+        statusTitle.style.color = "#ef4444"; // Red
+        statusCard.style.borderLeftColor = "#ef4444";
+
+        // Render Breaches
+        breachContainer.style.display = "block";
+
+        data.results.forEach((breach) => {
+          const card = document.createElement("div");
+          card.className = "glass-card";
+          card.style.borderLeft = "4px solid #f59e0b"; // Orange accent
+          card.style.marginBottom = "0"; // Grid handles spacing
+
+          // Construct HTML for each breach
+          card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <h4 style="color: #fff; font-size: 1.1rem; margin-bottom: 0.25rem;">
+                                ${breach.source || "Unknown Source"}
+                            </h4>
+                            <div style="color: #94a3b8; font-size: 0.9rem;">
+                                📅 Detected: ${formatDate(breach.date)}
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="background: rgba(139, 92, 246, 0.2); color: #c4b5fd; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; border: 1px solid #8b5cf6;">
+                                ${breach.category || "General Breach"}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    ${
+                      breach.password
+                        ? `
+                    <div style="margin-top: 1rem; background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 6px;">
+                        <div style="color: #ef4444; font-size: 0.8rem; font-weight: bold; margin-bottom: 0.25rem;">EXPOSED PASSWORD:</div>
+                        <code style="color: #e2e8f0; font-family: monospace;">${breach.password}</code>
+                    </div>
+                    `
+                        : ""
+                    }
+                    
+                    ${
+                      breach.pass_salt
+                        ? `
+                    <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #64748b;">
+                        Salt: ${breach.pass_salt.substring(0, 10)}...
+                    </div>
+                    `
+                        : ""
+                    }
+                `;
+          breachGrid.appendChild(card);
+        });
+      } else {
+        // SAFE
+        statusIcon.innerText = "✅";
+        statusTitle.innerText = "NO LEAKS FOUND";
+        statusDesc.innerText =
+          "Your data does not appear in our monitored databases.";
+
+        statusTitle.style.color = "#10b981"; // Green
+        statusCard.style.borderLeftColor = "#10b981";
+      }
+    } catch (err) {
+      console.error("Frontend Error:", err);
+      errorBox.style.display = "block";
+      errorBox.innerText = `Error: ${err.message}`;
+    } finally {
+      scanBtn.innerText = "Start Dark Web Scan";
+      scanBtn.disabled = false;
+    }
+  }
 </script>
 
 <%- include('partials/footer') %>
