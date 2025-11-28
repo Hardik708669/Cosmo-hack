@@ -299,6 +299,10 @@ app.get("/darkweb-monitor", requireAuth, (req, res) => {
   res.render("darkweb_monitor", { user: req.session.user });
 });
 
+app.get("/analytics", requireAuth, (req, res) => {
+  res.render("analytics", { user: req.session.user });
+});
+
 // API Routes for Security Tools
 app.post("/api/scan-url", requireAuth, async (req, res) => {
   const { url } = req.body;

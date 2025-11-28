@@ -1,0 +1,448 @@
+<%- include('partials/header', { title: 'Security Analytics - SecureGuard' }) %>
+<%- include('partials/sidebar', { page: 'analytics' }) %>
+
+<!-- External Libs -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+<style>
+  /* Dashboard specific overrides */
+  .chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+  }
+  .chart-card {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .metric-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(to right, #fff, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+</style>
+
+<div class="main-content">
+  <div class="container">
+    <!-- Header Section -->
+    <div class="fade-in-left" data-aos="fade-right" data-aos-duration="1000">
+      <h1 class="text-gradient-purple">📊 Security Analytics</h1>
+      <p style="color: #64748b; margin-top: 0.5rem">
+        Real-time visualization of threat intelligence and system health.
+      </p>
+    </div>
+
+    <!-- Top KPI Cards -->
+    <div
+      style="
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+      "
+    >
+      <div
+        class="glass-card chart-card"
+        data-aos="flip-up"
+        data-aos-delay="100"
+      >
+        <div style="color: #a78bfa; font-size: 0.9rem; font-weight: 600">
+          TOTAL SCANS
+        </div>
+        <div class="metric-value">12,450</div>
+        <div style="color: #10b981; font-size: 0.8rem">▲ 12% vs last week</div>
+      </div>
+
+      <div
+        class="glass-card chart-card"
+        data-aos="flip-up"
+        data-aos-delay="200"
+      >
+        <div style="color: #f87171; font-size: 0.9rem; font-weight: 600">
+          THREATS BLOCKED
+        </div>
+        <div
+          class="metric-value"
+          style="
+            background: linear-gradient(to right, #f87171, #fca5a5);
+            -webkit-background-clip: text;
+          "
+        >
+          843
+        </div>
+        <div style="color: #ef4444; font-size: 0.8rem">▼ 5% risk increase</div>
+      </div>
+
+      <div
+        class="glass-card chart-card"
+        data-aos="flip-up"
+        data-aos-delay="300"
+      >
+        <div style="color: #38bdf8; font-size: 0.9rem; font-weight: 600">
+          API LATENCY
+        </div>
+        <div
+          class="metric-value"
+          style="
+            background: linear-gradient(to right, #38bdf8, #bae6fd);
+            -webkit-background-clip: text;
+          "
+        >
+          42ms
+        </div>
+        <div style="color: #10b981; font-size: 0.8rem">
+          ⚡ Optimal Performance
+        </div>
+      </div>
+
+      <div
+        class="glass-card chart-card"
+        data-aos="flip-up"
+        data-aos-delay="400"
+      >
+        <div style="color: #fbbf24; font-size: 0.9rem; font-weight: 600">
+          ACTIVE MONITORS
+        </div>
+        <div
+          class="metric-value"
+          style="
+            background: linear-gradient(to right, #fbbf24, #fde047);
+            -webkit-background-clip: text;
+          "
+        >
+          24/7
+        </div>
+        <div style="color: #94a3b8; font-size: 0.8rem">System Operational</div>
+      </div>
+    </div>
+
+    <!-- Charts Row 1: Line & Bar -->
+    <div
+      style="
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+      "
+    >
+      <!-- Line Chart -->
+      <div class="glass-card" data-aos="fade-up" data-aos-duration="1000">
+        <h3 style="color: #fff; margin-bottom: 1rem">
+          Threat Traffic Overview
+        </h3>
+        <div class="chart-container">
+          <canvas id="trafficChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Bar Chart -->
+      <div class="glass-card" data-aos="fade-up" data-aos-duration="1200">
+        <h3 style="color: #fff; margin-bottom: 1rem">Attacks by Category</h3>
+        <div class="chart-container">
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row 2: Radar, Doughnut, Polar -->
+    <div
+      style="
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+      "
+    >
+      <!-- Radar Chart -->
+      <div class="glass-card" data-aos="zoom-in" data-aos-duration="1000">
+        <h3 style="color: #fff; margin-bottom: 1rem; text-align: center">
+          Vulnerability Assessment
+        </h3>
+        <div class="chart-container" style="height: 350px">
+          <canvas id="radarChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Doughnut Chart -->
+      <div class="glass-card" data-aos="zoom-in" data-aos-duration="1200">
+        <h3 style="color: #fff; margin-bottom: 1rem; text-align: center">
+          Risk Distribution
+        </h3>
+        <div class="chart-container" style="height: 300px; padding: 1rem">
+          <canvas id="doughnutChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Polar Area Chart -->
+      <div class="glass-card" data-aos="zoom-in" data-aos-duration="1400">
+        <h3 style="color: #fff; margin-bottom: 1rem; text-align: center">
+          Attack Origins
+        </h3>
+        <div class="chart-container" style="height: 350px">
+          <canvas id="polarChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row 3: Bubble (Advanced) -->
+    <div
+      class="glass-card"
+      style="margin-top: 2rem; margin-bottom: 2rem"
+      data-aos="fade-up"
+      data-aos-anchor-placement="center-bottom"
+    >
+      <h3 style="color: #fff; margin-bottom: 1rem">
+        Real-Time Anomaly Detection (Severity vs Frequency)
+      </h3>
+      <div class="chart-container" style="height: 400px">
+        <canvas id="bubbleChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- 1. INITIALIZE AOS (ANIMATE ON SCROLL) ---
+  AOS.init({
+    once: false, // Animation happens every time you scroll down/up
+    mirror: true, // Elements animate out while scrolling past them
+    offset: 100, // Offset (in px) from the original trigger point
+    easing: "ease-in-out-cubic",
+  });
+
+  // --- 2. CHART CONFIGURATIONS ---
+
+  // Global Defaults for Modern Look
+  Chart.defaults.color = "#94a3b8";
+  Chart.defaults.font.family = "'Inter', sans-serif";
+  Chart.defaults.scale.grid.color = "rgba(255, 255, 255, 0.05)";
+
+  // A. Line Chart (Traffic)
+  const ctxTraffic = document.getElementById("trafficChart").getContext("2d");
+
+  // Gradient Fill
+  const gradientTraffic = ctxTraffic.createLinearGradient(0, 0, 0, 400);
+  gradientTraffic.addColorStop(0, "rgba(139, 92, 246, 0.5)"); // Purple
+  gradientTraffic.addColorStop(1, "rgba(139, 92, 246, 0.0)");
+
+  new Chart(ctxTraffic, {
+    type: "line",
+    data: {
+      labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      datasets: [
+        {
+          label: "Malicious Requests",
+          data: [65, 59, 80, 81, 56, 95, 110],
+          fill: true,
+          backgroundColor: gradientTraffic,
+          borderColor: "#8b5cf6",
+          tension: 0.4, // Smooth curves
+          borderWidth: 2,
+          pointBackgroundColor: "#fff",
+          pointBorderColor: "#8b5cf6",
+          pointRadius: 4,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+      },
+      scales: {
+        y: { beginAtZero: true },
+      },
+    },
+  });
+
+  // B. Bar Chart (Categories)
+  const ctxCategory = document.getElementById("categoryChart").getContext("2d");
+  new Chart(ctxCategory, {
+    type: "bar",
+    data: {
+      labels: ["Phishing", "Malware", "SQL Injection", "XSS", "DDoS"],
+      datasets: [
+        {
+          label: "Incidents",
+          data: [120, 190, 30, 50, 20],
+          backgroundColor: [
+            "rgba(248, 113, 113, 0.7)", // Red
+            "rgba(251, 191, 36, 0.7)", // Amber
+            "rgba(56, 189, 248, 0.7)", // Blue
+            "rgba(167, 139, 250, 0.7)", // Purple
+            "rgba(52, 211, 153, 0.7)", // Green
+          ],
+          borderRadius: 6,
+          borderSkipped: false,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+    },
+  });
+
+  // C. Radar Chart (Vulnerability)
+  new Chart(document.getElementById("radarChart"), {
+    type: "radar",
+    data: {
+      labels: ["Network", "App Security", "Endpoint", "Cloud", "Identity"],
+      datasets: [
+        {
+          label: "Current Posture",
+          data: [85, 70, 90, 60, 80],
+          fill: true,
+          backgroundColor: "rgba(16, 185, 129, 0.2)",
+          borderColor: "#10b981",
+          pointBackgroundColor: "#10b981",
+          pointBorderColor: "#fff",
+          pointHoverBackgroundColor: "#fff",
+          pointHoverBorderColor: "#10b981",
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        r: {
+          angleLines: { color: "rgba(255, 255, 255, 0.1)" },
+          grid: { color: "rgba(255, 255, 255, 0.1)" },
+          pointLabels: { color: "#cbd5e1", font: { size: 12 } },
+          ticks: { backdropColor: "transparent", color: "transparent" }, // Hide tick numbers
+        },
+      },
+      plugins: { legend: { display: false } },
+    },
+  });
+
+  // D. Doughnut Chart (Risk)
+  new Chart(document.getElementById("doughnutChart"), {
+    type: "doughnut",
+    data: {
+      labels: ["Safe", "Suspicious", "Malicious"],
+      datasets: [
+        {
+          data: [300, 50, 100],
+          backgroundColor: [
+            "#10b981", // Emerald
+            "#fbbf24", // Amber
+            "#ef4444", // Red
+          ],
+          borderWidth: 0,
+          hoverOffset: 10,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: "70%",
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: { usePointStyle: true, padding: 20 },
+        },
+      },
+    },
+  });
+
+  // E. Polar Area (Attack Origins)
+  new Chart(document.getElementById("polarChart"), {
+    type: "polarArea",
+    data: {
+      labels: [
+        "USA",
+        "China",
+        "Russia",
+        "India",
+        "Brazil",
+        "UK",
+        "France",
+        "Germany",
+      ],
+      datasets: [
+        {
+          label: "Attacks",
+          data: [11, 16, 7, 12, 3, 9, 5, 14],
+          backgroundColor: [
+            "rgba(239, 68, 68, 0.5)",
+            "rgba(245, 158, 11, 0.5)",
+            "rgba(16, 185, 129, 0.5)",
+            "rgba(236, 72, 153, 0.5)", // Pink for India
+            "rgba(59, 130, 246, 0.5)",
+            "rgba(139, 92, 246, 0.5)",
+            "rgba(20, 184, 166, 0.5)", // Teal for France
+            "rgba(99, 102, 241, 0.5)", // Indigo for Germany
+          ],
+          borderWidth: 1,
+          borderColor: "#1e293b", // Match dark bg
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        r: {
+          grid: { color: "rgba(255, 255, 255, 0.1)" },
+          ticks: { display: false, backdropColor: "transparent" },
+        },
+      },
+      plugins: { legend: { position: "bottom" } },
+    },
+  });
+
+  // F. Bubble Chart (Anomaly)
+  new Chart(document.getElementById("bubbleChart"), {
+    type: "bubble",
+    data: {
+      datasets: [
+        {
+          label: "Network Anomalies",
+          data: [
+            { x: 20, y: 30, r: 15 },
+            { x: 40, y: 10, r: 10 },
+            { x: 25, y: 60, r: 25 }, // Big anomaly
+            { x: 35, y: 40, r: 5 },
+            { x: 50, y: 50, r: 12 },
+            { x: 10, y: 20, r: 8 },
+            { x: 45, y: 80, r: 20 }, // High severity
+          ],
+          backgroundColor: "rgba(236, 72, 153, 0.6)", // Pink
+          borderColor: "rgba(236, 72, 153, 1)",
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: "Time (minutes ago)",
+            color: "#94a3b8",
+          },
+          grid: { color: "rgba(255, 255, 255, 0.05)" },
+        },
+        y: {
+          title: { display: true, text: "Severity Score", color: "#94a3b8" },
+          grid: { color: "rgba(255, 255, 255, 0.05)" },
+        },
+      },
+      plugins: { legend: { display: false } },
+    },
+  });
+</script>
+
+<%- include('partials/footer') %>

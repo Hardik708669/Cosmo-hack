@@ -1,113 +1,340 @@
-<%- include('partials/header', { title: 'New Campaign - PhishGuard' }) %>
-<%- include('partials/sidebar', { page: 'campaigns' }) %>
+<%- include('partials/header', { title: 'New Campaign - PhishGuard' }) %> <%-
+include('partials/sidebar', { page: 'campaigns' }) %>
 
 <div class="main-content">
-    <div class="container">
-        <h1>Create New Campaign</h1>
-        
-        <div class="glass-card">
-            <form action="/campaigns" method="POST" id="campaignForm">
-                <div class="form-group">
-                    <label class="form-label" for="name">Campaign Name</label>
-                    <input type="text" id="name" name="name" class="form-input" 
-                           placeholder="Enter campaign name" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" for="template">Email Template</label>
-                    <select id="template" name="templateId" class="form-input" required>
-                        <option value="">Select a template</option>
-                        <% if (templates && templates.length > 0) { %>
-                            <% templates.forEach(template => { %>
-                                <option value="<%= template.id %>"><%= template.name %></option>
-                            <% }) %>
-                        <% } %>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" for="targetGroup">Target Group</label>
-                    <select id="targetGroup" name="targetGroup" class="form-input" required>
-                        <option value="">Select target group</option>
-                        <option value="Sales">Sales</option>
-                        <option value="Engineering">Engineering</option>
-                        <option value="Marketing">Marketing</option>
-                        <option value="HR">HR</option>
-                        <option value="Finance">Finance</option>
-                        <option value="All">All Users</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" for="scheduleType">Schedule</label>
-                    <select id="scheduleType" name="scheduleType" class="form-input" onchange="toggleSchedule()">
-                        <option value="immediate">Send Immediately</option>
-                        <option value="scheduled">Schedule for Later</option>
-                    </select>
-                </div>
-                
-                <div class="form-group" id="scheduleDateTime" style="display: none;">
-                    <label class="form-label" for="scheduledAt">Schedule Date & Time</label>
-                    <input type="datetime-local" id="scheduledAt" name="scheduledAt" class="form-input">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" for="description">Description (Optional)</label>
-                    <textarea id="description" name="description" class="form-input" rows="3" 
-                              placeholder="Enter campaign description"></textarea>
-                </div>
-                
-                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                    <button type="submit" class="btn btn-primary">Create Campaign</button>
-                    <a href="/campaigns" class="btn btn-secondary">Cancel</a>
-                </div>
-            </form>
-        </div>
-        
-        <div class="glass-card" style="margin-top: 2rem;">
-            <h3>Campaign Preview</h3>
-            <div id="campaignPreview">
-                <p style="color: #aaa;">Select a template to see preview</p>
-            </div>
-        </div>
+  <div class="container">
+    <!-- Header -->
+    <div class="fade-in-left" style="margin-bottom: 2rem">
+      <h1 class="text-gradient-purple">🚀 Launch New Campaign</h1>
+      <p style="color: #64748b; margin-top: 0.5rem">
+        Configure your simulation parameters and launch targeted tests.
+      </p>
     </div>
+
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem">
+      <!-- LEFT COLUMN: Campaign Wizard -->
+      <div class="glass-card card-purple fade-in-up">
+        <form action="/campaigns" method="POST" id="campaignForm">
+          <!-- Section 1: Campaign Identity -->
+          <div style="margin-bottom: 2rem">
+            <h3
+              style="
+                color: #fff;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                padding-bottom: 0.5rem;
+                margin-bottom: 1rem;
+              "
+            >
+              1. Campaign Identity
+            </h3>
+
+            <div class="form-group">
+              <label class="form-label" for="name">Campaign Name</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                class="form-input"
+                placeholder="e.g., Q3 Finance Phishing Test"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="description">Description</label>
+              <textarea
+                id="description"
+                name="description"
+                class="form-input"
+                rows="3"
+                placeholder="Internal notes about this test..."
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Section 2: Targeting & Content -->
+          <div style="margin-bottom: 2rem">
+            <h3
+              style="
+                color: #fff;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                padding-bottom: 0.5rem;
+                margin-bottom: 1rem;
+              "
+            >
+              2. Targeting & Content
+            </h3>
+
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem"
+            >
+              <div class="form-group">
+                <label class="form-label" for="template">Select Template</label>
+                <select
+                  id="template"
+                  name="templateId"
+                  class="form-input"
+                  required
+                >
+                  <option value="">-- Choose Email Template --</option>
+                  <% if (templates && templates.length > 0) { %> <%
+                  templates.forEach(template => { %>
+                  <option value="<%= template.id %>">
+                    <%= template.name %>
+                  </option>
+                  <% }) %> <% } %>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="targetGroup"
+                  >Target Department</label
+                >
+                <select
+                  id="targetGroup"
+                  name="targetGroup"
+                  class="form-input"
+                  required
+                >
+                  <option value="">-- Select Group --</option>
+                  <option value="All">🌐 All Employees</option>
+                  <option value="Sales">💼 Sales Dept</option>
+                  <option value="Engineering">💻 Engineering</option>
+                  <option value="Marketing">📢 Marketing</option>
+                  <option value="Finance">💰 Finance</option>
+                  <option value="HR">👥 HR</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Scheduling -->
+          <div style="margin-bottom: 2rem">
+            <h3
+              style="
+                color: #fff;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                padding-bottom: 0.5rem;
+                margin-bottom: 1rem;
+              "
+            >
+              3. Schedule Delivery
+            </h3>
+
+            <div class="form-group">
+              <label class="form-label">Launch Timing</label>
+              <div style="display: flex; gap: 1rem">
+                <label
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    color: #cbd5e1;
+                    cursor: pointer;
+                  "
+                >
+                  <input
+                    type="radio"
+                    name="scheduleType"
+                    value="immediate"
+                    checked
+                    onclick="toggleSchedule()"
+                  />
+                  🚀 Launch Immediately
+                </label>
+                <label
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    color: #cbd5e1;
+                    cursor: pointer;
+                  "
+                >
+                  <input
+                    type="radio"
+                    name="scheduleType"
+                    value="scheduled"
+                    onclick="toggleSchedule()"
+                  />
+                  📅 Schedule for Later
+                </label>
+              </div>
+            </div>
+
+            <div
+              class="form-group"
+              id="scheduleDateTime"
+              style="display: none; margin-top: 1rem"
+            >
+              <label class="form-label" for="scheduledAt"
+                >Select Date & Time</label
+              >
+              <input
+                type="datetime-local"
+                id="scheduledAt"
+                name="scheduledAt"
+                class="form-input"
+                style="max-width: 300px"
+              />
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div
+            style="
+              display: flex;
+              gap: 1rem;
+              border-top: 1px solid rgba(255, 255, 255, 0.1);
+              padding-top: 2rem;
+            "
+          >
+            <button
+              type="submit"
+              class="btn btn-primary"
+              style="flex: 1; background: #8b5cf6; border-color: #7c3aed"
+            >
+              🚀 Launch Campaign
+            </button>
+            <a
+              href="/campaigns"
+              class="btn"
+              style="background: rgba(255, 255, 255, 0.1); color: #fff"
+            >
+              Cancel
+            </a>
+          </div>
+        </form>
+      </div>
+
+      <!-- RIGHT COLUMN: Live Preview -->
+      <div
+        class="glass-card"
+        style="height: fit-content; position: sticky; top: 2rem"
+      >
+        <h3 style="color: #a78bfa; margin-bottom: 1rem">📧 Template Preview</h3>
+
+        <div
+          id="previewContainer"
+          style="
+            background: #fff;
+            border-radius: 8px;
+            min-height: 400px;
+            padding: 1.5rem;
+            position: relative;
+          "
+        >
+          <!-- Email Header Mockup -->
+          <div
+            style="
+              border-bottom: 1px solid #e2e8f0;
+              padding-bottom: 1rem;
+              margin-bottom: 1rem;
+            "
+          >
+            <div style="font-size: 0.85rem; color: #64748b">Subject:</div>
+            <div
+              id="previewSubject"
+              style="font-weight: bold; color: #1e293b; font-size: 1.1rem"
+            >
+              (Select a template)
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 0.5rem">
+              <div style="font-size: 0.8rem; color: #94a3b8">
+                From: <span style="color: #475569">IT Support</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Email Body -->
+          <div
+            id="previewBody"
+            style="color: #334155; font-size: 0.95rem; line-height: 1.6"
+          >
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 250px;
+                color: #cbd5e1;
+                flex-direction: column;
+              "
+            >
+              <span style="font-size: 3rem">📄</span>
+              <p>No template selected</p>
+            </div>
+          </div>
+        </div>
+
+        <div
+          style="
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-align: center;
+          "
+        >
+          This is how the email will appear to your targets.
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-function toggleSchedule() {
-    const scheduleType = document.getElementById('scheduleType').value;
-    const scheduleDateTime = document.getElementById('scheduleDateTime');
-    
-    if (scheduleType === 'scheduled') {
-        scheduleDateTime.style.display = 'block';
-        document.getElementById('scheduledAt').required = true;
-    } else {
-        scheduleDateTime.style.display = 'none';
-        document.getElementById('scheduledAt').required = false;
-    }
-}
+  function toggleSchedule() {
+    const isScheduled =
+      document.querySelector('input[name="scheduleType"]:checked').value ===
+      "scheduled";
+    const container = document.getElementById("scheduleDateTime");
+    const input = document.getElementById("scheduledAt");
 
-document.getElementById('template').addEventListener('change', function() {
-    const templateId = this.value;
-    if (templateId) {
-        // Fetch template preview
-        fetch(`/templates/${templateId}/preview`)
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('campaignPreview').innerHTML = `
-                    <h4>${data.subject}</h4>
-                    <div style="border: 1px solid var(--glass-border); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
-                        ${data.body}
-                    </div>
-                `;
-            })
-            .catch(() => {
-                document.getElementById('campaignPreview').innerHTML = '<p style="color: #aaa;">Error loading preview</p>';
-            });
+    if (isScheduled) {
+      container.style.display = "block";
+      input.required = true;
     } else {
-        document.getElementById('campaignPreview').innerHTML = '<p style="color: #aaa;">Select a template to see preview</p>';
+      container.style.display = "none";
+      input.required = false;
     }
-});
+  }
+
+  document
+    .getElementById("template")
+    .addEventListener("change", async function () {
+      const templateId = this.value;
+      const subjectEl = document.getElementById("previewSubject");
+      const bodyEl = document.getElementById("previewBody");
+
+      if (templateId) {
+        // Loading State
+        bodyEl.innerHTML =
+          '<div style="text-align:center; padding: 2rem; color: #64748b;">Loading preview...</div>';
+
+        try {
+          const response = await fetch(`/templates/${templateId}/preview`);
+          const data = await response.json();
+
+          // Update Preview
+          subjectEl.innerText = data.subject;
+          bodyEl.innerHTML = data.body; // Inject HTML directly
+        } catch (error) {
+          console.error("Preview Error:", error);
+          bodyEl.innerHTML =
+            '<div style="color: #ef4444; text-align: center;">Failed to load template preview.</div>';
+        }
+      } else {
+        // Reset
+        subjectEl.innerText = "(Select a template)";
+        bodyEl.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: center; height: 250px; color: #cbd5e1; flex-direction: column;">
+                <span style="font-size: 3rem;">📄</span>
+                <p>No template selected</p>
+            </div>
+        `;
+      }
+    });
 </script>
 
 <%- include('partials/footer') %>
