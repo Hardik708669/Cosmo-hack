@@ -488,29 +488,72 @@ app.post("/api/breach-search", requireAuth, async (req, res) => {
 });
 
 app.post("/api/darkweb-monitor", requireAuth, async (req, res) => {
-  const { domain } = req.body;
-  const found = Math.random() > 0.7;
-  setTimeout(() => {
-    res.json({
-      found,
-      sourcesScanned: 247,
-      alertCount: found ? Math.floor(Math.random() * 3) + 1 : 0,
-      findings: found
-        ? [
-            {
-              type: "Credentials",
-              description: "Email and password found in paste",
-              date: "2024-01-10",
-            },
-            {
-              type: "Database Dump",
-              description: "User records in leaked database",
-              date: "2023-12-05",
-            },
-          ]
-        : [],
+  const { data, type } = req.body;
+
+  if (!data) {
+    return res.status(400).json({ error: "Search data is required" });
+  }
+
+  // 1. Configuration
+  const apiKey = "YA02wYDycYZrB7INIfP5d47zryCd3gyr";
+  const searchType = type || "email"; // Default to email if not specified
+  const encodedData = encodeURIComponent(data);
+  const apiUrl = `https://www.ipqualityscore.com/api/json/leaked/${searchType}/${apiKey}/${encodedData}`;
+
+  console.log(`[Server] Dark Web Scan: ${searchType} -> ${data}`);
+
+  // 2. Promise Wrapper
+  const fetchLeakData = () => {
+    return new Promise((resolve, reject) => {
+      https
+        .get(apiUrl, (apiRes) => {
+          let raw = "";
+          apiRes.on("data", (chunk) => (raw += chunk));
+          apiRes.on("end", () => {
+            try {
+              resolve(JSON.parse(raw));
+            } catch (e) {
+              reject(new Error("Failed to parse API response"));
+            }
+          });
+        })
+        .on("error", (err) => reject(err));
     });
-  }, 3500);
+  };
+
+  try {
+    // 3. Execute Request
+    const apiData = await fetchLeakData();
+
+    if (apiData.success === false) {
+      console.error("[Server] API Error:", apiData.message);
+      // Return success: false but with error message to display on frontend
+      return res.json({
+        success: false,
+        error: apiData.message || "Quota Exceeded or Invalid Key",
+      });
+    }
+
+    // 4. Construct Response
+    // IPQS Leaked API structure: { success: true, leaked: true/false, results: [...] }
+    const responseData = {
+      success: true,
+      leaked: apiData.leaked || false,
+      query: data,
+      search_type: searchType,
+      records_count: apiData.results ? apiData.results.length : 0,
+      results: apiData.results || [], // Array of breach objects
+      requestId: apiData.request_id,
+    };
+
+    console.log(
+      `[Server] Leak Status: ${responseData.leaked}, Records: ${responseData.records_count}`
+    );
+    res.json(responseData);
+  } catch (error) {
+    console.error("[Server] Critical Error:", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 app.listen(PORT, () => {
