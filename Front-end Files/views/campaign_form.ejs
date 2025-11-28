@@ -77,12 +77,31 @@ include('partials/sidebar', { page: 'campaigns' }) %>
                   required
                 >
                   <option value="">-- Choose Email Template --</option>
-                  <% if (templates && templates.length > 0) { %> <%
-                  templates.forEach(template => { %>
-                  <option value="<%= template.id %>">
-                    <%= template.name %>
-                  </option>
-                  <% }) %> <% } %>
+
+                  <optgroup label="🔥 Popular Templates">
+                    <option value="demo_ms365">
+                      Microsoft 365: Password Expiry
+                    </option>
+                    <option value="demo_hr_policy">
+                      HR: New Remote Work Policy
+                    </option>
+                    <option value="demo_fedex">
+                      FedEx: Delivery Exception
+                    </option>
+                    <option value="demo_dropbox">
+                      Dropbox: File Shared With You
+                    </option>
+                  </optgroup>
+
+                  <% if (templates && templates.length > 0) { %>
+                  <optgroup label="📂 Your Custom Templates">
+                    <% templates.forEach(template => { %>
+                    <option value="<%= template.id %>">
+                      <%= template.name %>
+                    </option>
+                    <% }) %>
+                  </optgroup>
+                  <% } %>
                 </select>
               </div>
 
@@ -242,7 +261,8 @@ include('partials/sidebar', { page: 'campaigns' }) %>
 
             <div style="display: flex; gap: 1rem; margin-top: 0.5rem">
               <div style="font-size: 0.8rem; color: #94a3b8">
-                From: <span style="color: #475569">IT Support</span>
+                From:
+                <span style="color: #475569" id="previewFrom">IT Support</span>
               </div>
             </div>
           </div>
@@ -300,39 +320,76 @@ include('partials/sidebar', { page: 'campaigns' }) %>
     }
   }
 
+  // Pre-defined templates for instant preview
+  const demoTemplates = {
+    demo_ms365: {
+      subject: "Action Required: Your Microsoft 365 password expires today",
+      from: "Microsoft Security <security@microsoft-alert.com>",
+      body: '<div style="font-family:Segoe UI,sans-serif;"><div style="margin-bottom:20px;"><strong style="font-size:20px;color:#d83b01;">Microsoft</strong></div><p>Hello User,</p><p>Your password for <strong>user@company.com</strong> is set to expire in 24 hours.</p><p>Please use the button below to keep your current password or reset it.</p><div style="margin:25px 0;"><a href="#" style="background:#0078d4;color:white;padding:10px 20px;text-decoration:none;border-radius:4px;font-weight:bold;">Keep Current Password</a></div><p style="font-size:12px;color:#666;">This is a mandatory security update.</p></div>',
+    },
+    demo_hr_policy: {
+      subject: "HR Update: New Remote Work Policy 2025",
+      from: "Human Resources <hr@internal-corp-updates.com>",
+      body: '<div style="font-family:Arial,sans-serif;"><h3>Human Resources Update</h3><p>Dear Employee,</p><p>Please review the attached document regarding the updated hybrid work guidelines effective next month. You are required to sign the acknowledgment form by Friday.</p><div style="background:#f3f2f1;padding:15px;border:1px solid #ccc;display:flex;align-items:center;gap:10px;margin:20px 0;cursor:pointer;">📄 <div><strong>Remote_Work_Policy_v2.pdf</strong><br><span style="font-size:12px;color:#666;">1.2 MB</span></div></div><p>Regards,<br>HR Department</p></div>',
+    },
+    demo_fedex: {
+      subject: "FedEx: Delivery Exception #8443221",
+      from: "FedEx Tracking <tracking@fedex-support.net>",
+      body: '<div style="font-family:sans-serif;"><div style="border-bottom:2px solid #4d148c;padding-bottom:10px;margin-bottom:15px;"><h2 style="color:#4d148c;margin:0;">FedEx</h2></div><p><strong>Status: Unable to Deliver</strong></p><p>We could not deliver your package today due to an incorrect address on file.</p><div style="margin:25px 0;"><button style="background:#ff6200;color:white;border:none;padding:12px 25px;border-radius:30px;font-weight:bold;cursor:pointer;">Update Delivery Preferences</button></div><p style="font-size:12px;color:#999;">Tracking ID: 8443221-US</p></div>',
+    },
+    demo_dropbox: {
+      subject: 'Dropbox: "Q4 Financials.xlsx" shared with you',
+      from: "Dropbox <no-reply@dropbox-files.com>",
+      body: '<div style="font-family:sans-serif;text-align:center;"><img src="https://cfl.dropboxstatic.com/static/images/logo_catalog/dropbox_logo_glyph_2015_m1.svg" width="40" style="margin-bottom:15px;"><h3>John Doe shared a file with you</h3><p>"Q4 Financials.xlsx"</p><div style="margin:30px 0;"><a href="#" style="background:#0061ff;color:white;text-decoration:none;padding:12px 30px;border-radius:5px;font-weight:600;">View File</a></div></div>',
+    },
+  };
+
   document
     .getElementById("template")
     .addEventListener("change", async function () {
       const templateId = this.value;
       const subjectEl = document.getElementById("previewSubject");
       const bodyEl = document.getElementById("previewBody");
+      const fromEl = document.getElementById("previewFrom");
 
-      if (templateId) {
-        // Loading State
-        bodyEl.innerHTML =
-          '<div style="text-align:center; padding: 2rem; color: #64748b;">Loading preview...</div>';
-
-        try {
-          const response = await fetch(`/templates/${templateId}/preview`);
-          const data = await response.json();
-
-          // Update Preview
-          subjectEl.innerText = data.subject;
-          bodyEl.innerHTML = data.body; // Inject HTML directly
-        } catch (error) {
-          console.error("Preview Error:", error);
-          bodyEl.innerHTML =
-            '<div style="color: #ef4444; text-align: center;">Failed to load template preview.</div>';
-        }
-      } else {
-        // Reset
+      if (!templateId) {
         subjectEl.innerText = "(Select a template)";
+        fromEl.innerText = "IT Support";
         bodyEl.innerHTML = `
             <div style="display: flex; align-items: center; justify-content: center; height: 250px; color: #cbd5e1; flex-direction: column;">
                 <span style="font-size: 3rem;">📄</span>
                 <p>No template selected</p>
             </div>
         `;
+        return;
+      }
+
+      // CHECK IF IT'S A DEMO TEMPLATE
+      if (demoTemplates[templateId]) {
+        const demo = demoTemplates[templateId];
+        subjectEl.innerText = demo.subject;
+        fromEl.innerText = demo.from;
+        bodyEl.innerHTML = demo.body;
+        return;
+      }
+
+      // OTHERWISE FETCH FROM BACKEND
+      // Loading State
+      bodyEl.innerHTML =
+        '<div style="text-align:center; padding: 2rem; color: #64748b;">Loading preview...</div>';
+
+      try {
+        const response = await fetch(`/templates/${templateId}/preview`);
+        const data = await response.json();
+
+        // Update Preview
+        subjectEl.innerText = data.subject;
+        fromEl.innerText = data.sender || "IT Support";
+        bodyEl.innerHTML = data.body;
+      } catch (error) {
+        console.error("Preview Error:", error);
+        bodyEl.innerHTML =
+          '<div style="color: #ef4444; text-align: center;">Failed to load template preview.</div>';
       }
     });
 </script>

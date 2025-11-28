@@ -224,7 +224,6 @@ body::before {
   text-align: center;
   transition: all 0.3s ease;
   position: relative;
-  cursor: pointer;
 }
 
 .stat-card::after {
