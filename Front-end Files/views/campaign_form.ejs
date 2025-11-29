@@ -1,0 +1,397 @@
+<%- include('partials/header', { title: 'New Campaign - PhishGuard' }) %> <%-
+include('partials/sidebar', { page: 'campaigns' }) %>
+
+<div class="main-content">
+  <div class="container">
+    <!-- Header -->
+    <div class="fade-in-left" style="margin-bottom: 2rem">
+      <h1 class="text-gradient-purple">🚀 Launch New Campaign</h1>
+      <p style="color: #64748b; margin-top: 0.5rem">
+        Configure your simulation parameters and launch targeted tests.
+      </p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem">
+      <!-- LEFT COLUMN: Campaign Wizard -->
+      <div class="glass-card card-purple fade-in-up">
+        <form action="/campaigns" method="POST" id="campaignForm">
+          <!-- Section 1: Campaign Identity -->
+          <div style="margin-bottom: 2rem">
+            <h3
+              style="
+                color: #fff;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                padding-bottom: 0.5rem;
+                margin-bottom: 1rem;
+              "
+            >
+              1. Campaign Identity
+            </h3>
+
+            <div class="form-group">
+              <label class="form-label" for="name">Campaign Name</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                class="form-input"
+                placeholder="e.g., Q3 Finance Phishing Test"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="description">Description</label>
+              <textarea
+                id="description"
+                name="description"
+                class="form-input"
+                rows="3"
+                placeholder="Internal notes about this test..."
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Section 2: Targeting & Content -->
+          <div style="margin-bottom: 2rem">
+            <h3
+              style="
+                color: #fff;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                padding-bottom: 0.5rem;
+                margin-bottom: 1rem;
+              "
+            >
+              2. Targeting & Content
+            </h3>
+
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem"
+            >
+              <div class="form-group">
+                <label class="form-label" for="template">Select Template</label>
+                <select
+                  id="template"
+                  name="templateId"
+                  class="form-input"
+                  required
+                >
+                  <option value="">-- Choose Email Template --</option>
+
+                  <optgroup label="🔥 Popular Templates">
+                    <option value="demo_ms365">
+                      Microsoft 365: Password Expiry
+                    </option>
+                    <option value="demo_hr_policy">
+                      HR: New Remote Work Policy
+                    </option>
+                    <option value="demo_fedex">
+                      FedEx: Delivery Exception
+                    </option>
+                    <option value="demo_dropbox">
+                      Dropbox: File Shared With You
+                    </option>
+                  </optgroup>
+
+                  <% if (templates && templates.length > 0) { %>
+                  <optgroup label="📂 Your Custom Templates">
+                    <% templates.forEach(template => { %>
+                    <option value="<%= template.id %>">
+                      <%= template.name %>
+                    </option>
+                    <% }) %>
+                  </optgroup>
+                  <% } %>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="targetGroup"
+                  >Target Department</label
+                >
+                <select
+                  id="targetGroup"
+                  name="targetGroup"
+                  class="form-input"
+                  required
+                >
+                  <option value="">-- Select Group --</option>
+                  <option value="All">🌐 All Employees</option>
+                  <option value="Sales">💼 Sales Dept</option>
+                  <option value="Engineering">💻 Engineering</option>
+                  <option value="Marketing">📢 Marketing</option>
+                  <option value="Finance">💰 Finance</option>
+                  <option value="HR">👥 HR</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Scheduling -->
+          <div style="margin-bottom: 2rem">
+            <h3
+              style="
+                color: #fff;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                padding-bottom: 0.5rem;
+                margin-bottom: 1rem;
+              "
+            >
+              3. Schedule Delivery
+            </h3>
+
+            <div class="form-group">
+              <label class="form-label">Launch Timing</label>
+              <div style="display: flex; gap: 1rem">
+                <label
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    color: #cbd5e1;
+                    cursor: pointer;
+                  "
+                >
+                  <input
+                    type="radio"
+                    name="scheduleType"
+                    value="immediate"
+                    checked
+                    onclick="toggleSchedule()"
+                  />
+                  🚀 Launch Immediately
+                </label>
+                <label
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    color: #cbd5e1;
+                    cursor: pointer;
+                  "
+                >
+                  <input
+                    type="radio"
+                    name="scheduleType"
+                    value="scheduled"
+                    onclick="toggleSchedule()"
+                  />
+                  📅 Schedule for Later
+                </label>
+              </div>
+            </div>
+
+            <div
+              class="form-group"
+              id="scheduleDateTime"
+              style="display: none; margin-top: 1rem"
+            >
+              <label class="form-label" for="scheduledAt"
+                >Select Date & Time</label
+              >
+              <input
+                type="datetime-local"
+                id="scheduledAt"
+                name="scheduledAt"
+                class="form-input"
+                style="max-width: 300px"
+              />
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div
+            style="
+              display: flex;
+              gap: 1rem;
+              border-top: 1px solid rgba(255, 255, 255, 0.1);
+              padding-top: 2rem;
+            "
+          >
+            <button
+              type="submit"
+              class="btn btn-primary"
+              style="flex: 1; background: #8b5cf6; border-color: #7c3aed"
+            >
+              🚀 Launch Campaign
+            </button>
+            <a
+              href="/campaigns"
+              class="btn"
+              style="background: rgba(255, 255, 255, 0.1); color: #fff"
+            >
+              Cancel
+            </a>
+          </div>
+        </form>
+      </div>
+
+      <!-- RIGHT COLUMN: Live Preview -->
+      <div
+        class="glass-card"
+        style="height: fit-content; position: sticky; top: 2rem"
+      >
+        <h3 style="color: #a78bfa; margin-bottom: 1rem">📧 Template Preview</h3>
+
+        <div
+          id="previewContainer"
+          style="
+            background: #fff;
+            border-radius: 8px;
+            min-height: 400px;
+            padding: 1.5rem;
+            position: relative;
+          "
+        >
+          <!-- Email Header Mockup -->
+          <div
+            style="
+              border-bottom: 1px solid #e2e8f0;
+              padding-bottom: 1rem;
+              margin-bottom: 1rem;
+            "
+          >
+            <div style="font-size: 0.85rem; color: #64748b">Subject:</div>
+            <div
+              id="previewSubject"
+              style="font-weight: bold; color: #1e293b; font-size: 1.1rem"
+            >
+              (Select a template)
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 0.5rem">
+              <div style="font-size: 0.8rem; color: #94a3b8">
+                From:
+                <span style="color: #475569" id="previewFrom">IT Support</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Email Body -->
+          <div
+            id="previewBody"
+            style="color: #334155; font-size: 0.95rem; line-height: 1.6"
+          >
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 250px;
+                color: #cbd5e1;
+                flex-direction: column;
+              "
+            >
+              <span style="font-size: 3rem">📄</span>
+              <p>No template selected</p>
+            </div>
+          </div>
+        </div>
+
+        <div
+          style="
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-align: center;
+          "
+        >
+          This is how the email will appear to your targets.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleSchedule() {
+    const isScheduled =
+      document.querySelector('input[name="scheduleType"]:checked').value ===
+      "scheduled";
+    const container = document.getElementById("scheduleDateTime");
+    const input = document.getElementById("scheduledAt");
+
+    if (isScheduled) {
+      container.style.display = "block";
+      input.required = true;
+    } else {
+      container.style.display = "none";
+      input.required = false;
+    }
+  }
+
+  // Pre-defined templates for instant preview
+  const demoTemplates = {
+    demo_ms365: {
+      subject: "Action Required: Your Microsoft 365 password expires today",
+      from: "Microsoft Security <security@microsoft-alert.com>",
+      body: '<div style="font-family:Segoe UI,sans-serif;"><div style="margin-bottom:20px;"><strong style="font-size:20px;color:#d83b01;">Microsoft</strong></div><p>Hello User,</p><p>Your password for <strong>user@company.com</strong> is set to expire in 24 hours.</p><p>Please use the button below to keep your current password or reset it.</p><div style="margin:25px 0;"><a href="#" style="background:#0078d4;color:white;padding:10px 20px;text-decoration:none;border-radius:4px;font-weight:bold;">Keep Current Password</a></div><p style="font-size:12px;color:#666;">This is a mandatory security update.</p></div>',
+    },
+    demo_hr_policy: {
+      subject: "HR Update: New Remote Work Policy 2025",
+      from: "Human Resources <hr@internal-corp-updates.com>",
+      body: '<div style="font-family:Arial,sans-serif;"><h3>Human Resources Update</h3><p>Dear Employee,</p><p>Please review the attached document regarding the updated hybrid work guidelines effective next month. You are required to sign the acknowledgment form by Friday.</p><div style="background:#f3f2f1;padding:15px;border:1px solid #ccc;display:flex;align-items:center;gap:10px;margin:20px 0;cursor:pointer;">📄 <div><strong>Remote_Work_Policy_v2.pdf</strong><br><span style="font-size:12px;color:#666;">1.2 MB</span></div></div><p>Regards,<br>HR Department</p></div>',
+    },
+    demo_fedex: {
+      subject: "FedEx: Delivery Exception #8443221",
+      from: "FedEx Tracking <tracking@fedex-support.net>",
+      body: '<div style="font-family:sans-serif;"><div style="border-bottom:2px solid #4d148c;padding-bottom:10px;margin-bottom:15px;"><h2 style="color:#4d148c;margin:0;">FedEx</h2></div><p><strong>Status: Unable to Deliver</strong></p><p>We could not deliver your package today due to an incorrect address on file.</p><div style="margin:25px 0;"><button style="background:#ff6200;color:white;border:none;padding:12px 25px;border-radius:30px;font-weight:bold;cursor:pointer;">Update Delivery Preferences</button></div><p style="font-size:12px;color:#999;">Tracking ID: 8443221-US</p></div>',
+    },
+    demo_dropbox: {
+      subject: 'Dropbox: "Q4 Financials.xlsx" shared with you',
+      from: "Dropbox <no-reply@dropbox-files.com>",
+      body: '<div style="font-family:sans-serif;text-align:center;"><img src="https://cfl.dropboxstatic.com/static/images/logo_catalog/dropbox_logo_glyph_2015_m1.svg" width="40" style="margin-bottom:15px;"><h3>John Doe shared a file with you</h3><p>"Q4 Financials.xlsx"</p><div style="margin:30px 0;"><a href="#" style="background:#0061ff;color:white;text-decoration:none;padding:12px 30px;border-radius:5px;font-weight:600;">View File</a></div></div>',
+    },
+  };
+
+  document
+    .getElementById("template")
+    .addEventListener("change", async function () {
+      const templateId = this.value;
+      const subjectEl = document.getElementById("previewSubject");
+      const bodyEl = document.getElementById("previewBody");
+      const fromEl = document.getElementById("previewFrom");
+
+      if (!templateId) {
+        subjectEl.innerText = "(Select a template)";
+        fromEl.innerText = "IT Support";
+        bodyEl.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: center; height: 250px; color: #cbd5e1; flex-direction: column;">
+                <span style="font-size: 3rem;">📄</span>
+                <p>No template selected</p>
+            </div>
+        `;
+        return;
+      }
+
+      // CHECK IF IT'S A DEMO TEMPLATE
+      if (demoTemplates[templateId]) {
+        const demo = demoTemplates[templateId];
+        subjectEl.innerText = demo.subject;
+        fromEl.innerText = demo.from;
+        bodyEl.innerHTML = demo.body;
+        return;
+      }
+
+      // OTHERWISE FETCH FROM BACKEND
+      // Loading State
+      bodyEl.innerHTML =
+        '<div style="text-align:center; padding: 2rem; color: #64748b;">Loading preview...</div>';
+
+      try {
+        const response = await fetch(`/templates/${templateId}/preview`);
+        const data = await response.json();
+
+        // Update Preview
+        subjectEl.innerText = data.subject;
+        fromEl.innerText = data.sender || "IT Support";
+        bodyEl.innerHTML = data.body;
+      } catch (error) {
+        console.error("Preview Error:", error);
+        bodyEl.innerHTML =
+          '<div style="color: #ef4444; text-align: center;">Failed to load template preview.</div>';
+      }
+    });
+</script>
+
+<%- include('partials/footer') %>

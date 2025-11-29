@@ -1,0 +1,330 @@
+<%- include('partials/header', { title: 'URL Scanner - SecureGuard' }) %> <%-
+include('partials/sidebar', { page: 'url-scanner' }) %>
+
+<div class="main-content">
+  <div class="container">
+    <div class="fade-in-left">
+      <h1 class="text-gradient-emerald">🔍 Malicious URL Scanner</h1>
+      <p style="color: #64748b; margin-top: 0.5rem">
+        Analyze URLs for phishing, malware, and server reputation.
+      </p>
+    </div>
+
+    <div class="glass-card card-emerald fade-in-up" style="margin-top: 2rem">
+      <div id="scanContainer">
+        <div class="form-group">
+          <label class="form-label" for="urlInput">Target URL</label>
+          <input
+            type="text"
+            id="urlInput"
+            class="form-input"
+            placeholder="example.com"
+            value="google.com"
+          />
+        </div>
+        <button id="scanBtn" class="btn btn-primary" onclick="startScan()">
+          Initiate Deep Scan
+        </button>
+      </div>
+    </div>
+
+    <div
+      id="errorBox"
+      style="
+        display: none;
+        margin-top: 1rem;
+        padding: 1rem;
+        border-radius: 8px;
+        background: rgba(239, 68, 68, 0.2);
+        border: 1px solid #ef4444;
+        color: #fca5a5;
+        text-align: center;
+      "
+    ></div>
+
+    <div id="visualResults" style="display: none; margin-top: 2rem">
+      <div
+        class="glass-card"
+        style="
+          text-align: center;
+          padding: 2rem;
+          margin-bottom: 2rem;
+          border-left: 6px solid #3b82f6;
+        "
+        id="verdictCard"
+      >
+        <div
+          id="verdictIcon"
+          style="font-size: 4rem; margin-bottom: 1rem"
+        ></div>
+        <h2
+          id="verdictTitle"
+          style="font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem"
+        ></h2>
+        <p id="verdictDesc" style="color: #94a3b8; font-size: 1.1rem"></p>
+
+        <div
+          style="
+            margin-top: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+          "
+        >
+          <div
+            id="riskBar"
+            style="
+              width: 0%;
+              height: 100%;
+              background: #10b981;
+              transition: width 1s ease;
+            "
+          ></div>
+        </div>
+        <div style="margin-top: 0.5rem; color: #cbd5e1">
+          Risk Score: <span id="riskScoreVal">0</span>/100
+        </div>
+      </div>
+
+      <div
+        id="threatsContainer"
+        class="glass-card"
+        style="display: none; margin-bottom: 2rem; border: 1px solid #ef4444"
+      >
+        <h3 style="color: #ef4444; margin-bottom: 1rem">⚠️ Threats Detected</h3>
+        <div
+          id="threatBadges"
+          style="display: flex; gap: 10px; flex-wrap: wrap"
+        ></div>
+      </div>
+
+      <div
+        style="
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 1.5rem;
+        "
+      >
+        <div class="glass-card">
+          <h3
+            style="
+              color: var(--light-emerald);
+              margin-bottom: 1rem;
+              border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+              padding-bottom: 0.5rem;
+            "
+          >
+            🌐 Domain Info
+          </h3>
+          <ul
+            style="
+              list-style: none;
+              padding: 0;
+              color: #cbd5e1;
+              line-height: 2.2;
+            "
+          >
+            <li>
+              <strong>Domain:</strong>
+              <span id="resDomain" style="float: right; color: #fff"></span>
+            </li>
+            <li>
+              <strong>Age:</strong>
+              <span id="resAge" style="float: right; color: #fff"></span>
+            </li>
+            <li>
+              <strong>DNS Valid:</strong>
+              <span id="resDNS" style="float: right"></span>
+            </li>
+            <li>
+              <strong>Category:</strong>
+              <span id="resCat" style="float: right; color: #38bdf8"></span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="glass-card">
+          <h3
+            style="
+              color: var(--light-emerald);
+              margin-bottom: 1rem;
+              border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+              padding-bottom: 0.5rem;
+            "
+          >
+            🖥️ Server Info
+          </h3>
+          <ul
+            style="
+              list-style: none;
+              padding: 0;
+              color: #cbd5e1;
+              line-height: 2.2;
+            "
+          >
+            <li>
+              <strong>IP Address:</strong>
+              <span id="resIP" style="float: right; color: #fff"></span>
+            </li>
+            <li>
+              <strong>Country:</strong>
+              <span id="resCountry" style="float: right; color: #fff"></span>
+            </li>
+            <li>
+              <strong>Server:</strong>
+              <span id="resServer" style="float: right; color: #fff"></span>
+            </li>
+            <li>
+              <strong>Status Code:</strong>
+              <span
+                id="resStatus"
+                style="float: right; font-family: monospace"
+              ></span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Define helper outside to ensure it exists
+  const safeText = (txt) => (txt ? String(txt) : "N/A");
+
+  // MAIN FUNCTION - Called directly by button onclick
+  async function startScan() {
+    console.log("👉 Button Clicked! Function startScan() is running.");
+
+    // 1. Get Elements
+    const urlInput = document.getElementById("urlInput").value;
+    const scanBtn = document.getElementById("scanBtn");
+    const resultsDiv = document.getElementById("visualResults");
+    const errorBox = document.getElementById("errorBox");
+    const threatsDiv = document.getElementById("threatsContainer");
+
+    // 2. Reset UI
+    resultsDiv.style.display = "none";
+    errorBox.style.display = "none";
+    threatsDiv.style.display = "none";
+
+    scanBtn.innerText = "Scanning...";
+    scanBtn.disabled = true;
+
+    try {
+      console.log("👉 Sending Fetch Request to /api/scan-url for:", urlInput);
+
+      const response = await fetch("/api/scan-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: urlInput }),
+      });
+
+      console.log("👉 Response Status:", response.status);
+
+      // Check if HTML (Session Expired)
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("text/html")) {
+        throw new Error("Session Expired. Please refresh the page.");
+      }
+
+      const data = await response.json();
+      console.log("👉 API Data Received:", data);
+
+      if (data.success === false) {
+        throw new Error(data.error || "API returned failure");
+      }
+
+      // --- RENDER SUCCESS ---
+      resultsDiv.style.display = "block"; // Show box immediately
+
+      // 1. Verdict
+      const score = data.risk_score || 0;
+      const verdictCard = document.getElementById("verdictCard");
+      const riskBar = document.getElementById("riskBar");
+
+      document.getElementById("riskScoreVal").innerText = score;
+
+      // We consider it unsafe if the API says so OR if the score is high (75+)
+      if (data.unsafe === true || score >= 75) {
+        document.getElementById("verdictIcon").innerText = "⛔";
+        document.getElementById("verdictTitle").innerText =
+          "MALICIOUS / SUSPICIOUS";
+
+        // Custom message based on score
+        if (score >= 75 && !data.unsafe) {
+          document.getElementById("verdictDesc").innerText =
+            "High risk detected. This domain exhibits suspicious behavior.";
+        } else {
+          document.getElementById("verdictDesc").innerText =
+            "This URL is flagged as unsafe.";
+        }
+
+        document.getElementById("verdictTitle").style.color = "#ef4444"; // Red
+        verdictCard.style.borderLeftColor = "#ef4444";
+        riskBar.style.backgroundColor = "#ef4444";
+      } else {
+        document.getElementById("verdictIcon").innerText = "✅";
+        document.getElementById("verdictTitle").innerText = "SAFE";
+        document.getElementById("verdictDesc").innerText =
+          "No direct threats found.";
+
+        document.getElementById("verdictTitle").style.color = "#10b981"; // Green
+        verdictCard.style.borderLeftColor = "#10b981";
+        riskBar.style.backgroundColor = "#10b981";
+      }
+
+      riskBar.style.width = (score === 0 ? 5 : score) + "%";
+
+      // 2. Threats
+      const threatBadges = document.getElementById("threatBadges");
+      threatBadges.innerHTML = "";
+      let threatCount = 0;
+
+      if (data.threats) {
+        for (const [key, val] of Object.entries(data.threats)) {
+          if (val === true) {
+            threatCount++;
+            const badge = document.createElement("span");
+            badge.style.cssText =
+              "background:#7f1d1d; color:#fca5a5; padding:4px 10px; border-radius:12px; margin-right:5px; border:1px solid #ef4444";
+            badge.innerText = `⚠️ ${key.toUpperCase()}`;
+            threatBadges.appendChild(badge);
+          }
+        }
+      }
+      if (threatCount > 0) threatsDiv.style.display = "block";
+
+      // 3. Details
+      document.getElementById("resDomain").innerText = safeText(data.domain);
+      document.getElementById("resAge").innerText = safeText(data.domain_age);
+      document.getElementById("resCat").innerText = safeText(data.category);
+
+      const dnsSpan = document.getElementById("resDNS");
+      dnsSpan.innerText = data.dns_valid ? "Valid" : "Invalid";
+      dnsSpan.style.color = data.dns_valid ? "#10b981" : "#ef4444";
+
+      document.getElementById("resIP").innerText = safeText(data.ip_address);
+      document.getElementById("resCountry").innerText = safeText(
+        data.country_code
+      );
+      document.getElementById("resServer").innerText = safeText(data.server);
+      document.getElementById("resStatus").innerText = safeText(
+        data.status_code
+      );
+    } catch (err) {
+      console.error("❌ Frontend Error:", err);
+      errorBox.style.display = "block";
+      errorBox.innerText = `Error: ${err.message}`;
+    } finally {
+      scanBtn.innerText = "Initiate Deep Scan";
+      scanBtn.disabled = false;
+    }
+  }
+</script>
+
+<%- include('partials/footer') %>

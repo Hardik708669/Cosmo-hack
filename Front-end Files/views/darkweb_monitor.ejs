@@ -1,0 +1,380 @@
+<%- include('partials/header', { title: 'Dark Web Monitor - SecureGuard' }) %>
+<%- include('partials/sidebar', { page: 'darkweb-monitor' }) %>
+
+<div class="main-content">
+  <div class="container">
+    <div class="fade-in-left">
+      <h1><span style="-webkit-text-fill-color: initial; background: none;">🕵️</span> <span class="text-gradient-purple">Dark Web & Leak Monitor</span></h1>
+      <p style="color: #64748b; margin-top: 0.5rem">
+        Search the deep web for compromised credentials, emails, and phone
+        numbers.
+      </p>
+    </div>
+
+    <!-- 1. SEARCH CARD -->
+    <div class="glass-card card-purple fade-in-up" style="margin-top: 2rem">
+      <div id="searchContainer">
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap">
+          <!-- Type Selector -->
+          <div class="form-group" style="flex: 1; min-width: 150px">
+            <label class="form-label">Search Type</label>
+            <select
+              id="searchType"
+              class="form-input"
+              onchange="updatePlaceholder()"
+            >
+              <option value="email">Email Address</option>
+              <option value="username">Username</option>
+              <option value="phone">Phone Number</option>
+            </select>
+          </div>
+
+          <!-- Input Field -->
+          <div class="form-group" style="flex: 3; min-width: 250px">
+            <label class="form-label" for="searchInput">Search Data</label>
+            <input
+              type="text"
+              id="searchInput"
+              class="form-input"
+              placeholder="user@example.com"
+              value="test@example.com"
+            />
+          </div>
+        </div>
+
+        <button
+          id="scanBtn"
+          class="btn btn-primary"
+          style="background: #8b5cf6; border-color: #7c3aed"
+          onclick="initiateDarkWebScan()"
+        >
+          Start Dark Web Scan
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. ERROR BOX -->
+    <div
+      id="errorBox"
+      style="
+        display: none;
+        margin-top: 1rem;
+        padding: 1rem;
+        border-radius: 8px;
+        background: rgba(239, 68, 68, 0.2);
+        border: 1px solid #ef4444;
+        color: #fca5a5;
+        text-align: center;
+      "
+    ></div>
+
+    <!-- 3. RESULTS AREA -->
+    <div id="visualResults" style="display: none; margin-top: 2rem">
+      <!-- A. STATUS HEADER -->
+      <div
+        class="glass-card"
+        id="statusCard"
+        style="
+          text-align: center;
+          padding: 2rem;
+          margin-bottom: 2rem;
+          border-left: 6px solid #10b981;
+        "
+      >
+        <div id="statusIcon" style="font-size: 4rem; margin-bottom: 1rem">
+          ✅
+        </div>
+        <h2
+          id="statusTitle"
+          style="
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: #10b981;
+          "
+        >
+          NO LEAKS FOUND
+        </h2>
+        <p id="statusDesc" style="color: #94a3b8; font-size: 1.1rem">
+          Your data does not appear in our monitored dark web databases.
+        </p>
+
+        <div
+          style="
+            margin-top: 1.5rem;
+            display: inline-block;
+            padding: 5px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            color: #cbd5e1;
+          "
+        >
+          Databases Scanned: <strong>250+</strong>
+        </div>
+      </div>
+
+      <!-- B. BREACH LIST (Hidden if safe) -->
+      <div id="breachContainer" style="display: none">
+        <h3
+          style="
+            color: #fca5a5;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          "
+        >
+          <span
+            style="
+              background: #7f1d1d;
+              width: 30px;
+              height: 30px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border-radius: 50%;
+              font-size: 1.2rem;
+            "
+            >!</span
+          >
+          Exposed Records Found
+        </h3>
+
+        <!-- Breach Timeline Grid -->
+        <div
+          id="breachGrid"
+          style="display: grid; gap: 1.5rem; position: relative"
+        >
+          <!-- Dotted Line for Timeline Effect -->
+          <div
+            style="
+              position: absolute;
+              left: 19px;
+              top: 20px;
+              bottom: 20px;
+              width: 2px;
+              background: rgba(255, 255, 255, 0.1);
+              z-index: 0;
+            "
+          ></div>
+          <!-- Cards Injected Here -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Helper to update placeholder based on selection
+  function updatePlaceholder() {
+    const type = document.getElementById("searchType").value;
+    const input = document.getElementById("searchInput");
+    if (type === "email") input.placeholder = "user@example.com";
+    if (type === "username") input.placeholder = "CoolUser123";
+    if (type === "phone") input.placeholder = "15551234567";
+  }
+
+  // Helper to format dates
+  const formatDate = (str) => {
+    if (!str) return "Unknown Date";
+    return new Date(str).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  async function initiateDarkWebScan() {
+    console.log("👉 Dark Web Scan Initiated...");
+
+    // 1. Get Elements
+    const searchInput = document.getElementById("searchInput").value;
+    const searchType = document.getElementById("searchType").value;
+    const scanBtn = document.getElementById("scanBtn");
+    const resultsDiv = document.getElementById("visualResults");
+    const errorBox = document.getElementById("errorBox");
+    const breachContainer = document.getElementById("breachContainer");
+    const breachGrid = document.getElementById("breachGrid");
+
+    // 2. Reset UI
+    resultsDiv.style.display = "none";
+    errorBox.style.display = "none";
+    breachContainer.style.display = "none";
+    breachGrid.innerHTML =
+      '<div style="position: absolute; left: 19px; top: 20px; bottom: 20px; width: 2px; background: rgba(255,255,255,0.1); z-index: 0;"></div>'; // Reset with timeline line
+
+    scanBtn.innerText = "Searching Underground Markets...";
+    scanBtn.disabled = true;
+
+    try {
+      console.log(`👉 Requesting: ${searchType} -> ${searchInput}`);
+
+      const response = await fetch("/api/darkweb-monitor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: searchInput, type: searchType }),
+      });
+
+      // Session Check
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("text/html")) {
+        throw new Error("Session Expired. Please refresh.");
+      }
+
+      const data = await response.json();
+      console.log("👉 API Data:", data);
+
+      // --- DEMO MODE OVERRIDES (For Visual Verification) ---
+      if (searchInput === "leaked@test.com") {
+        data.leaked = true;
+        data.records_count = 3;
+        data.results = [
+          {
+            source: "Collection #1 (Comb)",
+            date: "2019-01-07",
+            category: "Public Database",
+            password: "password123",
+            pass_salt: null,
+          },
+          {
+            source: "Adobe Systems",
+            date: "2013-10-04",
+            category: "Corporate Breach",
+            password: null,
+            pass_salt: "A3F19...",
+          },
+          {
+            source: "LinkedIn",
+            date: "2012-06-05",
+            category: "Social Media",
+            password: "encrypted_hash",
+            pass_salt: null,
+          },
+        ];
+        data.success = true;
+      } else if (searchInput === "safe@test.com") {
+        data.leaked = false;
+        data.success = true;
+      } else if (searchInput === "admin123") {
+        data.leaked = true;
+        data.records_count = 1;
+        data.results = [
+          {
+            source: "Exploit Database",
+            date: "2023-11-15",
+            category: "Hacking Forum",
+            password: "admin",
+            pass_salt: null,
+          },
+        ];
+        data.success = true;
+      }
+      // -----------------------------------------------------
+
+      if (data.success === false) {
+        throw new Error(data.error || "Search failed");
+      }
+
+      // --- RENDER LOGIC ---
+      resultsDiv.style.display = "block";
+      const statusCard = document.getElementById("statusCard");
+      const statusTitle = document.getElementById("statusTitle");
+      const statusDesc = document.getElementById("statusDesc");
+      const statusIcon = document.getElementById("statusIcon");
+
+      if (data.leaked) {
+        // LEAK DETECTED
+        statusIcon.innerText = "⚠️";
+        statusTitle.innerText = `DATA COMPROMISED (${data.records_count} Records)`;
+        statusDesc.innerText =
+          "This data was found in public or private data breaches.";
+
+        statusTitle.style.color = "#ef4444"; // Red
+        statusCard.style.borderLeftColor = "#ef4444";
+
+        // Render Breaches
+        breachContainer.style.display = "block";
+
+        if (data.results && data.results.length > 0) {
+          data.results.forEach((breach) => {
+            const card = document.createElement("div");
+            card.className = "glass-card";
+            card.style.cssText =
+              "margin-left: 40px; border-left: 4px solid #f59e0b; position: relative; margin-bottom: 0;";
+
+            // Add timeline dot
+            const dot = document.createElement("div");
+            dot.style.cssText =
+              "position: absolute; left: -29px; top: 20px; width: 16px; height: 16px; background: #f59e0b; border-radius: 50%; border: 3px solid #0f172a; z-index: 1;";
+            card.appendChild(dot);
+
+            // Construct HTML for each breach
+            card.innerHTML += `
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+                            <div>
+                                <h4 style="color: #fff; font-size: 1.1rem; margin-bottom: 0.25rem;">
+                                    ${breach.source || "Unknown Source"}
+                                </h4>
+                                <div style="color: #94a3b8; font-size: 0.9rem;">
+                                    📅 Detected: ${formatDate(breach.date)}
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <span style="background: rgba(139, 92, 246, 0.2); color: #c4b5fd; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; border: 1px solid #8b5cf6;">
+                                    ${breach.category || "General Breach"}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        ${
+                          breach.password
+                            ? `
+                        <div style="margin-top: 1rem; background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 6px; border: 1px dashed rgba(239, 68, 68, 0.5);">
+                            <div style="color: #ef4444; font-size: 0.75rem; font-weight: bold; margin-bottom: 0.25rem; letter-spacing: 1px;">EXPOSED PASSWORD</div>
+                            <code style="color: #fca5a5; font-family: monospace; font-size: 1rem;">${breach.password}</code>
+                        </div>
+                        `
+                            : ""
+                        }
+                        
+                        ${
+                          breach.pass_salt
+                            ? `
+                        <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #64748b;">
+                            <strong>Salt/Hash:</strong> <span style="font-family: monospace;">${breach.pass_salt.substring(
+                              0,
+                              15
+                            )}...</span>
+                        </div>
+                        `
+                            : ""
+                        }
+                    `;
+            breachGrid.appendChild(card);
+          });
+        } else {
+          // Fallback if leaked=true but results array is empty
+          breachGrid.innerHTML = `<div style="color:#94a3b8; margin-left: 40px;">No specific breach details available via public API.</div>`;
+        }
+      } else {
+        // SAFE
+        statusIcon.innerText = "✅";
+        statusTitle.innerText = "NO LEAKS FOUND";
+        statusDesc.innerText =
+          "Your data does not appear in our monitored databases.";
+
+        statusTitle.style.color = "#10b981"; // Green
+        statusCard.style.borderLeftColor = "#10b981";
+      }
+    } catch (err) {
+      console.error("Frontend Error:", err);
+      errorBox.style.display = "block";
+      errorBox.innerText = `Error: ${err.message}`;
+    } finally {
+      scanBtn.innerText = "Start Dark Web Scan";
+      scanBtn.disabled = false;
+    }
+  }
+</script>
+
+<%- include('partials/footer') %>

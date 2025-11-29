@@ -1,0 +1,195 @@
+<%- include('partials/header', { title: (template ? 'Edit' : 'New') + ' Template - PhishGuard' }) %>
+<%- include('partials/sidebar', { page: 'templates' }) %>
+
+<div class="main-content">
+    <div class="container">
+        <h1><%= template ? 'Edit' : 'Create New' %> Template</h1>
+        
+        <div class="glass-card">
+            <form action="<%= template ? `/templates/${template.id}` : '/templates' %>" method="POST">
+                <% if (template) { %>
+                    <input type="hidden" name="_method" value="PUT">
+                <% } %>
+                
+                <div class="form-group">
+                    <label class="form-label" for="name">Template Name</label>
+                    <input type="text" id="name" name="name" class="form-input" 
+                           value="<%= template ? template.name : '' %>" 
+                           placeholder="Enter template name" required>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="senderName">Sender Name</label>
+                        <input type="text" id="senderName" name="senderName" class="form-input" 
+                               value="<%= template ? template.senderName : '' %>" 
+                               placeholder="e.g., IT Support" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="senderEmail">Sender Email</label>
+                        <input type="email" id="senderEmail" name="senderEmail" class="form-input" 
+                               value="<%= template ? template.senderEmail : '' %>" 
+                               placeholder="e.g., support@company.com" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="subject">Email Subject</label>
+                    <input type="text" id="subject" name="subject" class="form-input" 
+                           value="<%= template ? template.subject : '' %>" 
+                           placeholder="Enter email subject" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="bodyHtml">Email Body</label>
+                    <div id="editor-container" style="height: 300px; border: 1px solid var(--glass-border); border-radius: 8px;">
+                        <textarea id="bodyHtml" name="bodyHtml" style="display: none;"><%= template ? template.bodyHtml : '' %></textarea>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="category">Category</label>
+                    <select id="category" name="category" class="form-input">
+                        <option value="phishing" <%= template && template.category === 'phishing' ? 'selected' : '' %>>Phishing</option>
+                        <option value="spear-phishing" <%= template && template.category === 'spear-phishing' ? 'selected' : '' %>>Spear Phishing</option>
+                        <option value="social-engineering" <%= template && template.category === 'social-engineering' ? 'selected' : '' %>>Social Engineering</option>
+                        <option value="malware" <%= template && template.category === 'malware' ? 'selected' : '' %>>Malware</option>
+                    </select>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                    <button type="submit" class="btn btn-primary">
+                        <%= template ? 'Update' : 'Create' %> Template
+                    </button>
+                    <button type="button" onclick="previewTemplate()" class="btn btn-secondary">Preview</button>
+                    <a href="/templates" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Simple Rich Text Editor -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const textarea = document.getElementById('bodyHtml');
+    const container = document.getElementById('editor-container');
+    
+    // Create a simple rich text editor
+    const editor = document.createElement('div');
+    editor.contentEditable = true;
+    const isLightTheme = document.documentElement.getAttribute('data-theme') === 'light';
+    editor.style.cssText = `
+        height: 280px;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        color: ${isLightTheme ? '#000000' : 'white'};
+        overflow-y: auto;
+        outline: none;
+    `;
+    
+    if (textarea.value) {
+        editor.innerHTML = textarea.value;
+    } else {
+        editor.setAttribute('data-placeholder', 'Enter your email content here...');
+        editor.style.position = 'relative';
+    }
+    
+    editor.addEventListener('focus', function() {
+        if (!this.textContent.trim()) {
+            this.removeAttribute('data-placeholder');
+        }
+    });
+    
+    editor.addEventListener('blur', function() {
+        if (!this.textContent.trim()) {
+            this.setAttribute('data-placeholder', 'Enter your email content here...');
+        }
+    });
+    
+    // Toolbar
+    const toolbar = document.createElement('div');
+    toolbar.style.cssText = `
+        padding: 0.5rem;
+        background: rgba(139, 92, 246, 0.1);
+        border-bottom: 1px solid var(--glass-border);
+        display: flex;
+        gap: 0.5rem;
+    `;
+    
+    const buttons = [
+        { cmd: 'bold', text: 'B' },
+        { cmd: 'italic', text: 'I' },
+        { cmd: 'underline', text: 'U' },
+        { cmd: 'createLink', text: 'Link' }
+    ];
+    
+    buttons.forEach(btn => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = btn.text;
+        button.style.cssText = `
+            padding: 0.25rem 0.5rem;
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid var(--glass-border);
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        `;
+        button.onclick = () => {
+            if (btn.cmd === 'createLink') {
+                const url = prompt('Enter URL:');
+                if (url) document.execCommand(btn.cmd, false, url);
+            } else {
+                document.execCommand(btn.cmd);
+            }
+        };
+        toolbar.appendChild(button);
+    });
+    
+    container.appendChild(toolbar);
+    container.appendChild(editor);
+    
+    // Sync with textarea
+    editor.addEventListener('input', () => {
+        textarea.value = editor.innerHTML;
+        if (!editor.textContent.trim()) {
+            editor.setAttribute('data-placeholder', 'Enter your email content here...');
+        } else {
+            editor.removeAttribute('data-placeholder');
+        }
+    });
+    
+    // Add placeholder style
+    const style = document.createElement('style');
+    style.textContent = `
+        [data-placeholder]:empty:before {
+            content: attr(data-placeholder);
+            color: #64748b;
+            pointer-events: none;
+        }
+    `;
+    document.head.appendChild(style);
+});
+
+function previewTemplate() {
+    const name = document.getElementById('name').value;
+    const subject = document.getElementById('subject').value;
+    const bodyHtml = document.getElementById('bodyHtml').value;
+    
+    const previewWindow = window.open('', '_blank', 'width=600,height=400');
+    previewWindow.document.write(`
+        <html>
+            <head><title>Template Preview: ${name}</title></head>
+            <body style="font-family: Arial, sans-serif; padding: 20px;">
+                <h2>Subject: ${subject}</h2>
+                <hr>
+                <div>${bodyHtml}</div>
+            </body>
+        </html>
+    `);
+}
+</script>
+
+<%- include('partials/footer') %>

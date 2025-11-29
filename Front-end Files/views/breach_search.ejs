@@ -1,0 +1,408 @@
+<%- include('partials/header', { title: 'Email Verifier - SecureGuard' }) %> <%-
+include('partials/sidebar', { page: 'breach-search' }) %>
+
+<div class="main-content">
+  <div class="container">
+    <div class="fade-in-left">
+      <h1 class="text-gradient-emerald">
+        📧 Email Verification & Breach Check
+      </h1>
+      <p style="color: #64748b; margin-top: 0.5rem">
+        Validate email addresses and check for involvement in data leaks.
+      </p>
+    </div>
+
+    <!-- 1. SEARCH INPUT -->
+    <div class="glass-card card-emerald fade-in-up" style="margin-top: 2rem">
+      <div id="scanContainer">
+        <div class="form-group">
+          <label class="form-label" for="emailInput">Enter Email Address</label>
+          <input
+            type="email"
+            id="emailInput"
+            class="form-input"
+            placeholder="user@company.com"
+            value="test@example.com"
+          />
+        </div>
+        <button id="scanBtn" class="btn btn-primary" onclick="verifyEmail()">
+          Verify Email
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. ERROR BOX -->
+    <div
+      id="errorBox"
+      style="
+        display: none;
+        margin-top: 1rem;
+        padding: 1rem;
+        border-radius: 8px;
+        background: rgba(239, 68, 68, 0.2);
+        border: 1px solid #ef4444;
+        color: #fca5a5;
+        text-align: center;
+      "
+    ></div>
+
+    <!-- 3. RESULTS AREA -->
+    <div id="visualResults" style="display: none; margin-top: 2rem">
+      <!-- A. HEADLINE CARD -->
+      <div
+        class="glass-card"
+        style="
+          text-align: center;
+          padding: 2rem;
+          margin-bottom: 2rem;
+          border-left: 6px solid #3b82f6;
+        "
+        id="validityCard"
+      >
+        <div
+          id="validityIcon"
+          style="font-size: 4rem; margin-bottom: 1rem"
+        ></div>
+        <h2
+          id="validityTitle"
+          style="font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem"
+        ></h2>
+        <p id="validityDesc" style="color: #94a3b8; font-size: 1.1rem"></p>
+
+        <!-- Fraud Score Bar -->
+        <div
+          style="
+            margin-top: 1.5rem;
+            width: 100%;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              color: #cbd5e1;
+              font-size: 0.8rem;
+              margin-bottom: 5px;
+            "
+          >
+            <span>Fraud Score</span>
+            <span><span id="scoreVal">0</span>/100</span>
+          </div>
+          <div
+            style="
+              background: rgba(255, 255, 255, 0.1);
+              height: 10px;
+              border-radius: 5px;
+              overflow: hidden;
+            "
+          >
+            <div
+              id="fraudBar"
+              style="
+                width: 0%;
+                height: 100%;
+                background: #10b981;
+                transition: width 1s ease;
+              "
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B. ALERTS CONTAINER (Leaks/Disposable) -->
+      <div id="alertsContainer" style="display: none; margin-bottom: 2rem">
+        <div
+          id="alertBadges"
+          style="
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+          "
+        ></div>
+      </div>
+
+      <!-- C. DETAILS GRID -->
+      <div
+        style="
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 1.5rem;
+        "
+      >
+        <!-- Deliverability Info -->
+        <div class="glass-card">
+          <h3
+            style="
+              color: var(--light-emerald);
+              margin-bottom: 1rem;
+              border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+              padding-bottom: 0.5rem;
+            "
+          >
+            📬 Deliverability
+          </h3>
+          <ul
+            style="
+              list-style: none;
+              padding: 0;
+              color: #cbd5e1;
+              line-height: 2.2;
+            "
+          >
+            <li>
+              <strong>Valid SMTP:</strong>
+              <span id="resValid" style="float: right"></span>
+            </li>
+            <li>
+              <strong>Deliverability:</strong>
+              <span
+                id="resDeliverability"
+                style="float: right; text-transform: capitalize"
+              ></span>
+            </li>
+            <li>
+              <strong>Disposable:</strong>
+              <span id="resDisposable" style="float: right"></span>
+            </li>
+            <li>
+              <strong>Recent Abuse:</strong>
+              <span id="resAbuse" style="float: right"></span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Domain Intelligence -->
+        <div class="glass-card">
+          <h3
+            style="
+              color: var(--light-emerald);
+              margin-bottom: 1rem;
+              border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+              padding-bottom: 0.5rem;
+            "
+          >
+            🌐 Domain Context
+          </h3>
+          <ul
+            style="
+              list-style: none;
+              padding: 0;
+              color: #cbd5e1;
+              line-height: 2.2;
+            "
+          >
+            <li>
+              <strong>Domain Age:</strong>
+              <span id="resAge" style="float: right; color: #fff"></span>
+            </li>
+            <li>
+              <strong>First Seen:</strong>
+              <span id="resSeen" style="float: right; color: #fff"></span>
+            </li>
+            <li>
+              <strong>Honeypot:</strong>
+              <span id="resHoneypot" style="float: right"></span>
+            </li>
+            <li>
+              <strong>Leaked:</strong>
+              <span id="resLeaked" style="float: right"></span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const safeText = (txt) => (txt ? String(txt) : "N/A");
+
+  async function verifyEmail() {
+    console.log("👉 Button Clicked! verifyEmail() running.");
+
+    // 1. Get Elements
+    const emailInput = document.getElementById("emailInput").value;
+    const scanBtn = document.getElementById("scanBtn");
+    const resultsDiv = document.getElementById("visualResults");
+    const errorBox = document.getElementById("errorBox");
+    const alertsContainer = document.getElementById("alertsContainer");
+    const alertBadges = document.getElementById("alertBadges");
+
+    // 2. Reset UI
+    resultsDiv.style.display = "none";
+    errorBox.style.display = "none";
+    alertsContainer.style.display = "none";
+    alertBadges.innerHTML = "";
+
+    scanBtn.innerText = "Verifying...";
+    scanBtn.disabled = true;
+
+    try {
+      console.log("👉 Sending Request for:", emailInput);
+
+      const response = await fetch("/api/breach-search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailInput }),
+      });
+
+      // Check for Session Timeout
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("text/html")) {
+        throw new Error("Session Expired. Please refresh the page.");
+      }
+
+      const data = await response.json();
+      console.log("👉 API Data:", data);
+
+      // --- DEMO OVERRIDES (For showing different states easily) ---
+
+      if (emailInput === "valid@test.com") {
+        data.valid = true;
+        data.fraud_score = 0;
+        data.leaked = false;
+        data.disposable = false;
+        data.success = true;
+      } else if (emailInput === "risky@test.com") {
+        data.valid = true;
+        data.fraud_score = 95;
+        data.leaked = true;
+        data.success = true;
+      } else if (emailInput === "invalid@test.com") {
+        data.valid = false;
+        data.success = true;
+      }
+
+      if (data.success === false) {
+        throw new Error(data.error || "Verification failed");
+      }
+      resultsDiv.style.display = "block";
+
+      // 1. Headline Validity Logic
+      const card = document.getElementById("validityCard");
+      const icon = document.getElementById("validityIcon");
+      const title = document.getElementById("validityTitle");
+      const desc = document.getElementById("validityDesc");
+      const bar = document.getElementById("fraudBar");
+
+      const score = Number(data.fraud_score) || 0;
+
+      document.getElementById("scoreVal").innerText = score;
+      bar.style.width = (score === 0 ? 5 : score) + "%";
+
+      const isValid = data.valid === true;
+
+      // Define Risk Factors
+      const isLeaked = data.leaked === true;
+      const isDisposable = data.disposable === true;
+      const isHighScore = score >= 85;
+      const hasAbuse = data.recent_abuse === true || data.honeypot === true;
+
+      // A leaked email is usually still valid. We just show the badge.
+      const isMainVerdictRisky = isDisposable || isHighScore || hasAbuse;
+
+      if (!isValid) {
+        // CASE 1: INVALID
+        icon.innerText = "⛔";
+        title.innerText = "INVALID ADDRESS";
+        desc.innerText =
+          "This email address does not exist or cannot be delivered to.";
+        title.style.color = "#ef4444"; // Red
+        card.style.borderLeftColor = "#ef4444";
+        bar.style.backgroundColor = "#ef4444";
+      } else if (isMainVerdictRisky) {
+        // CASE 2: VALID BUT RISKY (Spammy/Disposable/High Fraud Score)
+        icon.innerText = "⚠️";
+        title.style.color = "#f59e0b"; // Orange
+        card.style.borderLeftColor = "#f59e0b";
+        bar.style.backgroundColor = "#f59e0b";
+
+        if (isDisposable) {
+          title.innerText = "DISPOSABLE EMAIL";
+          desc.innerText = "Temporary email address detected. Do not trust.";
+        } else {
+          title.innerText = "VALID (HIGH RISK)";
+          desc.innerText =
+            "Address exists but has a high fraud score or abuse history.";
+        }
+      } else {
+        // CASE 3: VALID AND SAFE (Matches most personal emails, even if leaked)
+        icon.innerText = "✅";
+        title.innerText = "VALID (VERIFIED)";
+        desc.innerText = "This address exists and has a healthy reputation.";
+        title.style.color = "#10b981"; // Green
+        card.style.borderLeftColor = "#10b981";
+        bar.style.backgroundColor = "#10b981";
+      }
+
+      // 2. Create Alert Badges (Leaked, Disposable, High Fraud)
+      let alertsFound = 0;
+
+      const addBadge = (text, colorClass) => {
+        alertsFound++;
+        const span = document.createElement("span");
+        span.innerText = text;
+        span.style.cssText =
+          "padding: 8px 16px; border-radius: 8px; font-weight: bold; border: 1px solid;";
+
+        if (colorClass === "red") {
+          span.style.background = "rgba(239, 68, 68, 0.2)";
+          span.style.color = "#fca5a5";
+          span.style.borderColor = "#ef4444";
+        } else if (colorClass === "orange") {
+          span.style.background = "rgba(245, 158, 11, 0.2)";
+          span.style.color = "#fcd34d";
+          span.style.borderColor = "#f59e0b";
+        }
+        alertBadges.appendChild(span);
+      };
+
+      if (data.leaked) addBadge("⚠️ LEAKED IN DATA BREACH", "red");
+      if (data.disposable) addBadge("🗑️ DISPOSABLE EMAIL", "orange");
+      if (data.honeypot) addBadge("🍯 SPAM TRAP / HONEYPOT", "red");
+      if (data.recent_abuse) addBadge("🚫 RECENT ABUSE HISTORY", "red");
+      if (score >= 85) addBadge(`🛡️ FRAUD SCORE: ${score}`, "orange");
+
+      if (alertsFound > 0) {
+        alertsContainer.style.display = "block";
+      }
+
+      // 3. Detailed Data Table
+      const setBool = (id, val, goodIsGreen = true) => {
+        const el = document.getElementById(id);
+        el.innerText = val ? "Yes" : "No";
+
+        if (val) {
+          el.style.color = goodIsGreen ? "#10b981" : "#ef4444";
+        } else {
+          el.style.color = goodIsGreen ? "#ef4444" : "#10b981";
+        }
+      };
+
+      setBool("resValid", data.valid, true); // Valid = Green
+      setBool("resDisposable", data.disposable, false); // Disposable = Red
+      setBool("resAbuse", data.recent_abuse, false); // Abuse = Red
+      setBool("resHoneypot", data.honeypot, false); // Honeypot = Red
+      setBool("resLeaked", data.leaked, false); // Leaked = Red
+
+      document.getElementById("resDeliverability").innerText = safeText(
+        data.deliverability
+      );
+      document.getElementById("resAge").innerText = safeText(data.domain_age);
+      document.getElementById("resSeen").innerText = safeText(data.first_seen);
+    } catch (err) {
+      console.error("Frontend Error:", err);
+      errorBox.style.display = "block";
+      errorBox.innerText = `Error: ${err.message}`;
+    } finally {
+      scanBtn.innerText = "Verify Email";
+      scanBtn.disabled = false;
+    }
+  }
+</script>
+
+<%- include('partials/footer') %>

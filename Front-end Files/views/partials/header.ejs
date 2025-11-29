@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title || 'Phishing Awareness Tool' %></title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/enhanced.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      // Theme toggle - runs immediately
+      const savedTheme = sessionStorage.getItem("theme") || "dark";
+      document.documentElement.setAttribute("data-theme", savedTheme);
+
+      document.addEventListener("DOMContentLoaded", function () {
+        // Theme toggle button
+        const themeToggle = document.getElementById("themeToggle");
+        const themeIcon = document.querySelector(".theme-icon");
+        
+        if (themeIcon) themeIcon.textContent = savedTheme === "light" ? "🌙" : "☀️";
+
+        if (themeToggle) {
+          themeToggle.addEventListener("click", function () {
+            const currentTheme = document.documentElement.getAttribute("data-theme");
+            const newTheme = currentTheme === "light" ? "dark" : "light";
+            
+            sessionStorage.setItem("theme", newTheme);
+            location.reload();
+          });
+        }
+      });
+
+      // Sidebar toggle - runs after full page load
+      window.addEventListener("load", function () {
+        const toggleBtn = document.getElementById("sidebarToggle");
+        const sidebar = document.querySelector(".sidebar");
+        const mainContent = document.querySelector(".main-content");
+
+        if (toggleBtn) {
+          toggleBtn.addEventListener("click", function () {
+            this.classList.toggle("active");
+            if (sidebar) sidebar.classList.toggle("collapsed");
+            if (mainContent) mainContent.classList.toggle("expanded");
+          });
+        }
+
+        // Close sidebar when clicking outside on mobile
+        if (window.innerWidth <= 768) {
+          document.addEventListener("click", function (e) {
+            if (sidebar && !sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+              if (!sidebar.classList.contains("collapsed")) {
+                sidebar.classList.add("collapsed");
+                if (toggleBtn) toggleBtn.classList.remove("active");
+              }
+            }
+          });
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="nav-container">
+        <button id="sidebarToggle" class="sidebar-toggle">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div style="display: flex; align-items: center; gap: 1rem">
+          <a href="/dashboard" class="nav-brand">SecureGuard</a>
+        </div>
+        <ul class="nav-links">
+          <li><a href="/dashboard">Dashboard</a></li>
+          <li><a href="/users">Users</a></li>
+          <li><a href="/templates">Templates</a></li>
+          <li><a href="/campaigns">Campaigns</a></li>
+          <li>
+            <button id="themeToggle" class="theme-toggle" title="Toggle theme">
+              <span class="theme-icon">🌙</span>
+            </button>
+          </li>
+          <li style="color: #64748b; padding: 0.5rem 1rem; font-size: 0.85rem">
+            <% if (typeof user !== 'undefined' && user) { %> 👤 <%=
+            user.fullName || user.username %> <% } %>
+          </li>
+          <li>
+            <a
+              href="/logout"
+              style="background: rgba(239, 68, 68, 0.1); color: #fca5a5"
+              >Logout</a
+            >
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </body>
+</html>

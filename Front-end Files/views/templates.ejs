@@ -1,0 +1,61 @@
+<%- include('partials/header', { title: 'Templates - PhishGuard' }) %>
+<%- include('partials/sidebar', { page: 'templates' }) %>
+
+<div class="main-content">
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+            <div style="display: flex; align-items: center;">
+                <div style="font-size: 2rem; margin-right: 1rem;">📧</div>
+                <h1 style="margin: 0;">Email Templates</h1>
+            </div>
+            <a href="/templates/new" class="btn btn-primary pulse">+ New Template</a>
+        </div>
+
+        <div class="dashboard-grid">
+            <% if (templates && templates.length > 0) { %>
+                <% templates.forEach(template => { %>
+                    <div class="glass-card sparkle">
+                        <h3><%= template.name %></h3>
+                        <p style="color: #aaa; margin: 1rem 0;"><%= template.subject %></p>
+                        <div style="font-size: 0.9rem; color: #ccc; margin-bottom: 1rem;">
+                            From: <%= template.senderName %> &lt;<%= template.senderEmail %>&gt;
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                            <a href="/templates/<%= template.id %>" class="btn btn-secondary">View</a>
+                            <a href="/templates/<%= template.id %>/edit" class="btn btn-secondary">Edit</a>
+                            <button onclick="deleteTemplate(<%= template.id %>)" class="btn btn-danger">Delete</button>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <div class="glass-card sparkle">
+                    <h3>No Templates Found</h3>
+                    <p style="color: #aaa; margin: 1rem 0;">Create your first email template to get started with phishing simulations.</p>
+                    <a href="/templates/new" class="btn btn-primary">Create Template</a>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<script>
+function deleteTemplate(templateId) {
+    if (confirm('Are you sure you want to delete this template?')) {
+        fetch(`/templates/${templateId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Error deleting template');
+            }
+        });
+    }
+}
+</script>
+
+<%- include('partials/footer') %>
